@@ -264,6 +264,8 @@ export const useFeedStore = defineStore('feed', () => {
     const { data } = await api.post<SummaryResult>('/ai/summary', {
       entry_id: entryId,
       language,
+    }, {
+      timeout: 90000, // 90 seconds for summary generation
     })
     summaryCache.value[entryId] = data
     return data
@@ -277,6 +279,8 @@ export const useFeedStore = defineStore('feed', () => {
     const { data } = await api.post<TranslationResult>('/ai/translate', {
       entry_id: entryId,
       language,
+    }, {
+      timeout: 120000, // 2 minutes for translation (multiple AI API calls)
     })
     translationCache.value[cacheKey] = data
     return data
@@ -290,6 +294,8 @@ export const useFeedStore = defineStore('feed', () => {
     const { data } = await api.post<{ entry_id: string; title: string; language: string }>('/ai/translate-title', {
       entry_id: entryId,
       language,
+    }, {
+      timeout: 30000, // 30 seconds for title translation
     })
     titleTranslationCache.value[cacheKey] = {
       title: data.title,

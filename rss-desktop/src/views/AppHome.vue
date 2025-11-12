@@ -6,6 +6,8 @@ import { useFeedStore } from '../stores/feedStore'
 import { useAIStore } from '../stores/aiStore'
 import { useFavoritesStore } from '../stores/favoritesStore'
 import { useSettingsStore } from '../stores/settingsStore'
+import { useI18n } from 'vue-i18n'
+import { useLanguage } from '../composables/useLanguage'
 import Toast from '../components/Toast.vue'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import SettingsModal from '../components/SettingsModal.vue'
@@ -18,7 +20,12 @@ const store = useFeedStore()
 const aiStore = useAIStore()
 const favoritesStore = useFavoritesStore()
 const settingsStore = useSettingsStore()
+const { t } = useI18n()
+const { setLanguage, loadLanguage } = useLanguage()
 const aiFeatures = computed(() => aiStore.config.features)
+
+// 初始化语言设置
+loadLanguage()
 
 // Computed filtered entries
 const filteredEntries = computed(() => {
@@ -89,7 +96,7 @@ const toastMessage = ref('')
 const toastType = ref<'success' | 'error' | 'info'>('info')
 const showSettings = ref(false)
 const MAX_AUTO_TITLE_TRANSLATIONS = Number.POSITIVE_INFINITY
-const NO_SUMMARY_TEXT = '暂无摘要'
+const NO_SUMMARY_TEXT = computed(() => t('ai.noSummary'))
 const FEED_ICON_COLORS = [
   '#FF8A3D',
   '#2EC4B6',
@@ -104,10 +111,58 @@ const FEED_ICON_COLORS = [
 const brokenFeedIcons = ref<Record<string, string>>({})
 
 // 布局状态管理
-const sidebarWidth = ref(280)
-const detailsWidth = ref(420)
+const DEFAULT_SIDEBAR_WIDTH = 280
+const DEFAULT_DETAILS_WIDTH = 420
+const DEFAULT_VIEWPORT_WIDTH = typeof window !== 'undefined' ? window.innerWidth : 1440
+const sidebarWidth = ref(DEFAULT_SIDEBAR_WIDTH)
+const detailsWidth = ref(DEFAULT_DETAILS_WIDTH)
 const isDraggingLeft = ref(false)
 const isDraggingRight = ref(false)
+const RESIZER_GUTTER = 6 // 两条分隔线总宽度
+const MIN_TIMELINE_WIDTH = 300
+const MIN_SIDEBAR_WIDTH = 210
+const MAX_SIDEBAR_WIDTH = 460
+const MIN_DETAILS_WIDTH = 280
+const MAX_SIDEBAR_RATIO = 0.4
+const MAX_DETAILS_RATIO = 0.48
+const sidebarRatio = ref(DEFAULT_SIDEBAR_WIDTH / DEFAULT_VIEWPORT_WIDTH)
+const detailsRatio = ref(DEFAULT_DETAILS_WIDTH / DEFAULT_VIEWPORT_WIDTH)
+const viewportWidth = ref(DEFAULT_VIEWPORT_WIDTH)
+const SIDEBAR_RATIO_KEY = 'rss-layout-sidebar-ratio'
+const DETAILS_RATIO_KEY = 'rss-layout-details-ratio'
+const SIDEBAR_WIDTH_KEY = 'rss-layout-sidebar-width'
+const DETAILS_WIDTH_KEY = 'rss-layout-details-width'
+
+function refreshViewportWidth() {
+  if (typeof window === 'undefined') return
+  viewportWidth.value = window.innerWidth
+}
+
+function updateRatiosFromWidths() {
+  if (!viewportWidth.value) return
+  sidebarRatio.value = sidebarWidth.value / viewportWidth.value
+  detailsRatio.value = detailsWidth.value / viewportWidth.value
+}
+
+function applyRatiosToWidths(options: { preserveRatios?: boolean } = {}) {
+  if (!viewportWidth.value) return
+  const viewport = viewportWidth.value
+  const totalRatio = Math.max(sidebarRatio.value + detailsRatio.value, 0.0001)
+  const desiredSidebar = viewport * (sidebarRatio.value / totalRatio)
+  const desiredDetails = viewport * (detailsRatio.value / totalRatio)
+  sidebarWidth.value = clampSidebarWidth(desiredSidebar, desiredDetails)
+  detailsWidth.value = clampDetailsWidth(desiredDetails, sidebarWidth.value)
+  rebalanceColumnsForTimeline()
+  if (!options.preserveRatios) {
+    updateRatiosFromWidths()
+  }
+}
+
+function handleWindowResize() {
+  refreshViewportWidth()
+  ensureLayoutWithinBounds({ recomputeFromRatios: true, preserveRatios: true })
+  saveLayoutSettings()
+}
 
 function showNotification(message: string, type: 'success' | 'error' | 'info' = 'info') {
   toastMessage.value = message
@@ -206,7 +261,7 @@ async function loadFavoritesData(options: { includeEntries?: boolean; feedId?: s
     }
   } catch (error) {
     console.error('Failed to load favorites data:', error)
-    showNotification('加载收藏数据失败', 'error')
+    showNotification(t('toast.loadFavoritesFailed'), 'error')
   }
 }
 
@@ -337,29 +392,135 @@ function updateTheme() {
   }
 }
 
-// 布局相关方法
-const timelineWidth = computed(() => {
-  return `calc(100vw - ${sidebarWidth.value}px - ${detailsWidth.value}px)`
-})
-
 function saveLayoutSettings() {
-  localStorage.setItem('rss-layout-sidebar-width', sidebarWidth.value.toString())
-  localStorage.setItem('rss-layout-details-width', detailsWidth.value.toString())
+  localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.value.toString())
+  localStorage.setItem(DETAILS_WIDTH_KEY, detailsWidth.value.toString())
+  localStorage.setItem(SIDEBAR_RATIO_KEY, sidebarRatio.value.toString())
+  localStorage.setItem(DETAILS_RATIO_KEY, detailsRatio.value.toString())
 }
 
 function loadLayoutSettings() {
-  const savedSidebar = localStorage.getItem('rss-layout-sidebar-width')
-  const savedDetails = localStorage.getItem('rss-layout-details-width')
+  if (typeof window === 'undefined') return
+  refreshViewportWidth()
+  const savedSidebarRatio = localStorage.getItem(SIDEBAR_RATIO_KEY)
+  const savedDetailsRatio = localStorage.getItem(DETAILS_RATIO_KEY)
+  const hasRatio = !!(savedSidebarRatio || savedDetailsRatio)
+
+  if (savedSidebarRatio) {
+    const ratio = parseFloat(savedSidebarRatio)
+    if (!Number.isNaN(ratio)) {
+      sidebarRatio.value = ratio
+    }
+  }
+  if (savedDetailsRatio) {
+    const ratio = parseFloat(savedDetailsRatio)
+    if (!Number.isNaN(ratio)) {
+      detailsRatio.value = ratio
+    }
+  }
+
+  if (hasRatio) {
+    applyRatiosToWidths()
+    return
+  }
+
+  const savedSidebar = localStorage.getItem(SIDEBAR_WIDTH_KEY)
+  const savedDetails = localStorage.getItem(DETAILS_WIDTH_KEY)
 
   if (savedSidebar) sidebarWidth.value = parseInt(savedSidebar, 10)
   if (savedDetails) detailsWidth.value = parseInt(savedDetails, 10)
+  ensureLayoutWithinBounds()
 }
 
 function resetLayout() {
   sidebarWidth.value = 280
   detailsWidth.value = 420
+  ensureLayoutWithinBounds()
   saveLayoutSettings()
-  showNotification('布局已重置为默认设置', 'info')
+  showNotification(t('toast.layoutReset'), 'info')
+}
+
+function clampSidebarWidth(width: number, referenceDetailsWidth = detailsWidth.value) {
+  const viewport = viewportWidth.value || (typeof window !== 'undefined' ? window.innerWidth : DEFAULT_VIEWPORT_WIDTH)
+  const maxSidebarByRatio = viewport * MAX_SIDEBAR_RATIO
+  const maxSidebarBasedOnTimeline = viewport - referenceDetailsWidth - MIN_TIMELINE_WIDTH - RESIZER_GUTTER
+  const maxSidebarBasedOnDetails = viewport - MIN_DETAILS_WIDTH - MIN_TIMELINE_WIDTH - RESIZER_GUTTER
+  const absoluteMax = Math.min(Math.max(MAX_SIDEBAR_WIDTH, maxSidebarByRatio), Math.max(0, maxSidebarBasedOnDetails))
+  const usableMax = Math.min(absoluteMax, Math.max(0, maxSidebarBasedOnTimeline))
+  const safeMax = usableMax > 0 ? usableMax : Math.max(0, absoluteMax)
+  const safeMin = Math.min(MIN_SIDEBAR_WIDTH, safeMax || MIN_SIDEBAR_WIDTH)
+  if (safeMax <= 0) return safeMin
+  const clamped = Math.min(width, safeMax)
+  return Math.max(safeMin, clamped)
+}
+
+function clampDetailsWidth(width: number, referenceSidebarWidth = sidebarWidth.value) {
+  const viewport = viewportWidth.value || (typeof window !== 'undefined' ? window.innerWidth : DEFAULT_VIEWPORT_WIDTH)
+  const maxWidthByViewport = viewport * MAX_DETAILS_RATIO
+  const maxWidthByTimeline = viewport - referenceSidebarWidth - MIN_TIMELINE_WIDTH - RESIZER_GUTTER
+  const maxWidthBySidebarReserve = viewport - MIN_SIDEBAR_WIDTH - MIN_TIMELINE_WIDTH - RESIZER_GUTTER
+  const absoluteMax = Math.min(maxWidthByViewport, Math.max(0, maxWidthBySidebarReserve))
+  const usableMax = Math.min(absoluteMax, Math.max(0, maxWidthByTimeline))
+  const safeMax = usableMax > 0 ? usableMax : Math.max(0, absoluteMax)
+  const safeMin = Math.min(MIN_DETAILS_WIDTH, safeMax || MIN_DETAILS_WIDTH)
+
+  if (safeMax <= 0) return safeMin
+  const clamped = Math.min(width, safeMax)
+  return Math.max(safeMin, clamped)
+}
+
+function ensureLayoutWithinBounds(options: { recomputeFromRatios?: boolean; preserveRatios?: boolean } = {}) {
+  if (options.recomputeFromRatios) {
+    applyRatiosToWidths({ preserveRatios: options.preserveRatios })
+    return
+  }
+  sidebarWidth.value = clampSidebarWidth(sidebarWidth.value)
+  detailsWidth.value = clampDetailsWidth(detailsWidth.value)
+  rebalanceColumnsForTimeline()
+  if (!options.preserveRatios) {
+    updateRatiosFromWidths()
+  }
+}
+
+function rebalanceColumnsForTimeline() {
+  if (!viewportWidth.value) return
+  let timelineWidth = viewportWidth.value - sidebarWidth.value - detailsWidth.value - RESIZER_GUTTER
+  if (timelineWidth >= MIN_TIMELINE_WIDTH) return
+
+  let shortage = MIN_TIMELINE_WIDTH - timelineWidth
+  let sidebarCapacity = Math.max(0, sidebarWidth.value - MIN_SIDEBAR_WIDTH)
+  let detailsCapacity = Math.max(0, detailsWidth.value - MIN_DETAILS_WIDTH)
+  let totalCapacity = sidebarCapacity + detailsCapacity
+
+  if (totalCapacity <= 0) return
+
+  if (sidebarCapacity > 0) {
+    const reduction = Math.min(shortage * (sidebarCapacity / totalCapacity), sidebarCapacity)
+    sidebarWidth.value -= reduction
+    shortage -= reduction
+    sidebarCapacity -= reduction
+    totalCapacity = sidebarCapacity + detailsCapacity
+  }
+
+  if (shortage > 0 && detailsCapacity > 0) {
+    const reduction = Math.min(shortage, detailsCapacity)
+    detailsWidth.value -= reduction
+    shortage -= reduction
+    detailsCapacity -= reduction
+    totalCapacity = sidebarCapacity + detailsCapacity
+  }
+
+  if (shortage > 0 && sidebarCapacity > 0) {
+    const extra = Math.min(shortage, sidebarCapacity)
+    sidebarWidth.value -= extra
+    shortage -= extra
+    sidebarCapacity -= extra
+  }
+
+  if (shortage > 0 && detailsCapacity > 0) {
+    const extra = Math.min(shortage, detailsCapacity)
+    detailsWidth.value -= extra
+  }
 }
 
 // 拖拽处理函数
@@ -379,19 +540,15 @@ function handleMouseDownRight(event: MouseEvent) {
 
 function handleMouseMove(event: MouseEvent) {
   if (isDraggingLeft.value) {
-    const newWidth = Math.max(200, Math.min(500, event.clientX))
-    sidebarWidth.value = newWidth
+    refreshViewportWidth()
+    sidebarWidth.value = clampSidebarWidth(event.clientX)
+    updateRatiosFromWidths()
     saveLayoutSettings()
   } else if (isDraggingRight.value) {
-    // 详情栏最大可达屏幕宽度的50%
-    const maxDetailsWidth = window.innerWidth * 0.5
-    // 最小要保证时间线有200px宽度
-    const maxWidthBasedOnSidebar = window.innerWidth - sidebarWidth.value - 200
-    // 取两者的较大值作为实际最大宽度
-    const actualMaxWidth = Math.max(maxDetailsWidth, maxWidthBasedOnSidebar)
-
-    const newWidth = Math.max(300, Math.min(actualMaxWidth, window.innerWidth - event.clientX))
-    detailsWidth.value = newWidth
+    refreshViewportWidth()
+    const desiredWidth = (typeof window !== 'undefined' ? window.innerWidth : viewportWidth.value) - event.clientX
+    detailsWidth.value = clampDetailsWidth(desiredWidth)
+    updateRatiosFromWidths()
     saveLayoutSettings()
   }
 }
@@ -406,6 +563,7 @@ function handleMouseUp() {
 }
 
 onMounted(async () => {
+  refreshViewportWidth()
   const savedTheme = localStorage.getItem('theme')
   darkMode.value = savedTheme === 'dark'
   updateTheme()
@@ -415,6 +573,7 @@ onMounted(async () => {
 
   // 加载布局设置
   loadLayoutSettings()
+  ensureLayoutWithinBounds({ recomputeFromRatios: true })
 
   // 加载AI配置
   await aiStore.fetchConfig()
@@ -431,6 +590,7 @@ onMounted(async () => {
   // 添加全局事件监听器
   window.addEventListener('mousemove', handleMouseMove)
   window.addEventListener('mouseup', handleMouseUp)
+  window.addEventListener('resize', handleWindowResize)
 
   const initialDateRange = settingsStore.settings.enable_date_filter ? dateRangeFilter.value : undefined
   const initialTimeField = settingsStore.settings.time_field
@@ -449,6 +609,7 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener('mousemove', handleMouseMove)
   window.removeEventListener('mouseup', handleMouseUp)
+  window.removeEventListener('resize', handleWindowResize)
 })
 
 watch(
@@ -624,9 +785,9 @@ async function handleAddFeed() {
   try {
     await store.addFeed(newFeedUrl.value)
     newFeedUrl.value = ''
-    showNotification('订阅添加成功！', 'success')
+    showNotification(t('feeds.addSuccess'), 'success')
   } catch (error) {
-    showNotification('添加订阅失败', 'error')
+    showNotification(t('feeds.addFailed'), 'error')
   }
 }
 
@@ -834,11 +995,11 @@ async function handleImportOpml(event: Event) {
           <LogoMark class="brand__icon" :size="32" />
           <div>
             <h1>Aurora Feeds</h1>
-            <p class="muted">本地私享 · AI 智能阅读台</p>
+            <p class="muted">{{ t('common.local') }} {{ t('common.private') }} · {{ t('common.ai') }} {{ t('common.smart') }} {{ t('common.reading') }} {{ t('common.platform') }}</p>
           </div>
         </div>
         <div class="header-actions">
-          <button @click="toggleTheme" class="theme-toggle" :title="darkMode ? '切换到浅色模式' : '切换到深色模式'">
+          <button @click="toggleTheme" class="theme-toggle" :title="darkMode ? t('layout.themeToggleTitle') : t('layout.themeToggleTitleDark')">
             <svg
               v-if="darkMode"
               class="icon icon-20"
@@ -874,7 +1035,7 @@ async function handleImportOpml(event: Event) {
               />
             </svg>
           </button>
-          <button @click="showSettings = true" class="settings-btn" title="设置">
+          <button @click="showSettings = true" class="settings-btn" :title="t('layout.settingsTitle')">
             <svg
               class="icon icon-20"
               viewBox="0 0 24 24"
@@ -890,7 +1051,7 @@ async function handleImportOpml(event: Event) {
               />
             </svg>
           </button>
-          <button @click="resetLayout" class="layout-reset-btn" title="重置布局">
+          <button @click="resetLayout" class="layout-reset-btn" :title="t('layout.resetLayoutTitle')">
             <svg
               class="icon icon-20"
               viewBox="0 0 24 24"
@@ -908,9 +1069,9 @@ async function handleImportOpml(event: Event) {
       </header>
 
       <form class="add-feed" @submit.prevent="handleAddFeed">
-        <input v-model.trim="newFeedUrl" placeholder="输入 RSS / 网站地址" />
+        <input v-model.trim="newFeedUrl" :placeholder="t('feeds.addPlaceholder')" />
         <button type="submit" :disabled="store.addingFeed">
-          {{ store.addingFeed ? '添加中...' : '添加订阅' }}
+          {{ store.addingFeed ? t('feeds.adding') : t('feeds.addFeed') }}
         </button>
       </form>
 
@@ -1158,7 +1319,7 @@ async function handleImportOpml(event: Event) {
     ></div>
 
     <!-- 时间线 -->
-    <main class="timeline" :style="{ width: timelineWidth }">
+    <main class="timeline">
       <header class="timeline__header">
         <div>
           <h2 v-if="showFavoritesOnly">
@@ -1455,10 +1616,14 @@ async function handleImportOpml(event: Event) {
 <style scoped>
 .app-shell {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
   background: var(--bg-base);
   color: var(--text-primary);
   position: relative;
+  max-width: 100vw;
+  overflow-x: hidden;
+  overflow-y: auto;
+  align-items: stretch;
 }
 
 /* 分隔器样式 */
@@ -1507,8 +1672,12 @@ async function handleImportOpml(event: Event) {
   padding: 24px 16px;
   background: var(--bg-surface);
   flex-shrink: 0;
-  min-width: 200px;
-  max-width: 500px;
+  min-width: 210px;
+  max-width: 460px;
+  box-sizing: border-box;
+  max-height: 100vh;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .sidebar__header {
@@ -1645,7 +1814,6 @@ async function handleImportOpml(event: Event) {
 
 .feed-list {
   flex: 1;
-  overflow-y: auto;
 }
 
 .group-controls {
@@ -1957,16 +2125,23 @@ async function handleImportOpml(event: Event) {
   flex-direction: column;
   border-right: 1px solid var(--border-color);
   background: var(--bg-base);
-  flex: 1;
-  min-width: 200px;
+  flex: 1 1 auto;
+  min-width: 260px;
+  width: auto;
+  box-sizing: border-box;
+  max-height: 100vh;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .timeline__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px;
+  padding: clamp(16px, 2vw, 24px);
   border-bottom: 1px solid var(--border-color);
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .timeline__actions {
@@ -1983,10 +2158,10 @@ async function handleImportOpml(event: Event) {
   gap: 8px;
   border: none;
   border-radius: 999px;
-  padding: 10px 18px 10px 12px;
+  padding: clamp(8px, 1.1vw, 10px) clamp(14px, 1.8vw, 18px) clamp(8px, 1.1vw, 10px) clamp(10px, 1.3vw, 12px);
   background: linear-gradient(120deg, #ff7a18, #ffbe30);
   color: #fff;
-  font-size: 13px;
+  font-size: clamp(12px, 0.95vw, 13px);
   font-weight: 600;
   letter-spacing: 0.2px;
   cursor: pointer;
@@ -2042,11 +2217,12 @@ async function handleImportOpml(event: Event) {
 }
 
 .timeline__controls {
-  padding: 16px 24px;
+  padding: clamp(12px, 1.8vw, 20px) clamp(16px, 2vw, 24px);
   border-bottom: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex: 0 0 auto;
 }
 
 .search-input {
@@ -2223,23 +2399,24 @@ async function handleImportOpml(event: Event) {
 }
 
 .timeline__list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
+  flex: 1 1 auto;
+  padding: clamp(12px, 1.5vw, 16px);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: clamp(10px, 1vw, 14px);
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .entry-card {
   border: 1px solid var(--border-color);
   text-align: left;
-  padding: 16px;
+  padding: clamp(12px, 1.5vw, 16px);
   border-radius: 16px;
   background: var(--bg-surface);
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: clamp(10px, 0.8vw, 14px);
   color: var(--text-primary);
   box-shadow: 0 4px 14px rgba(15, 17, 21, 0.05);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease;
@@ -2319,15 +2496,20 @@ async function handleImportOpml(event: Event) {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-height: 4.2em; /* 1.4 line-height * 3 lines */
+  max-height: clamp(4.2em, 6vw, 6.3em);
 }
 
 .details {
   background: var(--bg-surface);
   padding: 24px;
-  overflow-y: auto;
   flex-shrink: 0;
-  min-width: 300px;
+  min-width: 280px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  max-height: 100vh;
+  min-height: 0;
+  overflow: hidden;
   /* 最大宽度由JavaScript动态控制，最大可达50%屏幕宽度 */
 }
 
@@ -2350,14 +2532,14 @@ async function handleImportOpml(event: Event) {
 
 .details__actions button,
 .details__actions .lang-select {
-  height: 28px;
-  padding: 0 12px;
+  height: clamp(28px, 3.2vw, 34px);
+  padding: 0 clamp(10px, 1.3vw, 14px);
   border-radius: 999px;
   border: 1px solid rgba(15, 17, 21, 0.12);
   background: rgba(255, 255, 255, 0.8);
   color: var(--text-primary);
   font-weight: 500;
-  font-size: 0.75rem;
+  font-size: clamp(0.72rem, 1vw, 0.8rem);
   letter-spacing: 0.01em;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
@@ -2406,6 +2588,9 @@ async function handleImportOpml(event: Event) {
   line-height: 1.6;
   color: var(--text-primary);
   word-break: break-word;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .details__body :deep(p) {
@@ -2507,18 +2692,22 @@ async function handleImportOpml(event: Event) {
   padding: 24px;
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 960px) {
   .app-shell {
     flex-direction: column;
-    height: 100vh;
+    min-height: 100vh;
+    height: auto;
+    max-height: none;
+    overflow: visible;
   }
 
   .sidebar {
     width: 100% !important;
     height: auto;
-    max-height: 300px;
+    max-height: none;
     border-right: none;
     border-bottom: 1px solid var(--border-color);
+    overflow: visible;
   }
 
   .resizer {
@@ -2529,11 +2718,17 @@ async function handleImportOpml(event: Event) {
     border-right: none;
     border-bottom: 1px solid var(--border-color);
     min-width: auto;
+    height: auto;
+    max-height: none;
+    overflow: visible;
   }
 
   .details {
     width: 100% !important;
     max-width: none;
+    height: auto;
+    max-height: none;
+    overflow: visible;
   }
 
   .details__actions {

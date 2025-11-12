@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useLanguage } from '../composables/useLanguage'
 import { useAIStore, type AIServiceKey } from '../stores/aiStore'
 import { useSettingsStore } from '../stores/settingsStore'
 
@@ -11,6 +13,8 @@ const emit = defineEmits<{
   close: []
 }>()
 
+const { t } = useI18n()
+const { setLanguage, currentLanguage, availableLocales } = useLanguage()
 const aiStore = useAIStore()
 const settingsStore = useSettingsStore()
 
@@ -309,26 +313,47 @@ function handleBackdropClick(event: MouseEvent) {
     <div v-if="show" class="modal-backdrop" @click="handleBackdropClick">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>设置</h2>
+          <h2>{{ t('settings.title') }}</h2>
           <button @click="handleClose" class="close-btn">✕</button>
         </div>
 
         <div class="modal-body">
+          <!-- Language Settings -->
           <section class="settings-section">
-            <h3>RSSHub 配置</h3>
+            <h3>{{ t('settings.language') }}</h3>
+            <div class="form-group">
+              <label>{{ t('settings.language') }}</label>
+              <select
+                v-model="currentLanguage.code"
+                @change="setLanguage(currentLanguage.code)"
+                class="form-select"
+              >
+                <option
+                  v-for="locale in availableLocales"
+                  :key="locale.code"
+                  :value="locale.code"
+                >
+                  {{ locale.flag }} {{ locale.name }}
+                </option>
+              </select>
+            </div>
+          </section>
+
+          <section class="settings-section">
+            <h3>{{ t('settings.rssHubConfig') }}</h3>
             <div class="form-group">
               <label>RSSHub URL</label>
               <input
                 v-model="rsshubUrl"
                 type="text"
-                placeholder="输入您的RSSHub地址，如：http://58.198.178.157:1200"
+                :placeholder="t('settings.rssHubPlaceholder')"
                 class="form-input"
               />
               <p class="form-hint">
-                输入您自己的RSSHub实例地址，用于获取各种网站的RSS订阅
+                {{ t('settings.rssHubDescription') }}
               </p>
               <p class="form-hint">
-                部署RSSHub: <a href="https://docs.rsshub.app/zh/guide/install/" target="_blank">RSSHub部署指南</a>
+                {{ t('settings.rssHubDeployGuide') }}: <a href="https://docs.rsshub.app/zh/guide/install/" target="_blank">RSSHub部署指南</a>
               </p>
             </div>
 
@@ -343,7 +368,7 @@ function handleBackdropClick(event: MouseEvent) {
                   error: rsshubTestResult?.success === false
                 }"
               >
-                {{ isTestingRSSHub ? '测试中...' : '测试RSSHub连通性' }}
+                {{ isTestingRSSHub ? t('settings.testingRssHub') : t('settings.testRssHub') }}
               </button>
               <div v-if="rsshubTestResult" class="test-result" :class="{
                 success: rsshubTestResult.success,
@@ -630,11 +655,38 @@ function handleBackdropClick(event: MouseEvent) {
 
           <section class="settings-section">
             <h3>关于</h3>
-            <p class="about-text">
-              RSS READER v0.1.0<br />
-              本地 RSS 阅读器 + AI 摘要<br />
-              <a href="https://github.com" target="_blank">GitHub</a>
-            </p>
+            <div class="about-content">
+              <div class="about-header">
+                <h4 class="app-title">RSS READER</h4>
+                <span class="app-version">v0.1.0</span>
+              </div>
+              <p class="app-description">
+                一个现代化的本地RSS阅读器，支持AI摘要、智能翻译和优雅的阅读体验。
+              </p>
+              <div class="about-features">
+                <span class="feature-badge">📰 RSS订阅</span>
+                <span class="feature-badge">🤖 AI摘要</span>
+                <span class="feature-badge">🌐 智能翻译</span>
+                <span class="feature-badge">⭐ 收藏管理</span>
+              </div>
+              <div class="about-links">
+                <a href="https://github.com/yourusername/RSSpage" target="_blank" class="about-link">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                  </svg>
+                  GitHub 项目主页
+                </a>
+                <a href="https://github.com/yourusername/RSSpage/issues" target="_blank" class="about-link">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8zm9 3a1 1 0 11-2 0 1 1 0 012 0zM8 4a.905.905 0 00-.9.995l.35 3.507a.552.552 0 001.1 0l.35-3.507A.905.905 0 008 4z"/>
+                  </svg>
+                  反馈问题
+                </a>
+              </div>
+              <p class="about-footer">
+                Made with ❤️ using Vue 3 + FastAPI
+              </p>
+            </div>
           </section>
         </div>
 
@@ -926,19 +978,115 @@ function handleBackdropClick(event: MouseEvent) {
   line-height: 1.3;
 }
 
-.about-text {
+.about-content {
+  background: linear-gradient(135deg, rgba(255, 122, 24, 0.05) 0%, rgba(88, 86, 214, 0.05) 100%);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.about-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(120deg, #ff7a18, #5856d6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.app-version {
+  display: inline-block;
+  padding: 4px 10px;
+  background: rgba(0, 122, 255, 0.1);
+  color: #007aff;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 122, 255, 0.2);
+}
+
+.app-description {
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   line-height: 1.6;
+  margin: 0 0 16px 0;
 }
 
-.about-text a {
-  color: var(--accent);
+.about-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.feature-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.feature-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: var(--accent);
+}
+
+.about-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.about-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
   text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
-.about-text a:hover {
-  text-decoration: underline;
+.about-link:hover {
+  border-color: var(--accent);
+  background: rgba(255, 122, 24, 0.05);
+  transform: translateX(4px);
+}
+
+.about-link svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.about-footer {
+  margin: 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+  font-style: italic;
 }
 
 .modal-footer {
