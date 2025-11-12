@@ -212,6 +212,7 @@
     "rssHubDeployGuide": "部署RSSHub: RSSHub部署指南",
     "testRssHub": "测试RSSHub连通性",
     "testingRssHub": "测试中...",
+    "testConnection": "测试连接",
     "aiConfig": "AI 配置",
     "summaryGeneration": "摘要生成",
     "summarySubtitle": "用于 AI 摘要与自动摘要",
@@ -220,8 +221,10 @@
     "useSummaryConfig": "沿用摘要配置",
     "apiKey": "API Key",
     "apiKeyPlaceholder": "输入 GLM API Key",
+    "translationApiKeyPlaceholder": "输入翻译使用的 API Key",
     "getApiKey": "获取 API Key:",
     "apiUrl": "API 地址",
+    "apiUrlPlaceholder": "API Base URL",
     "modelName": "模型名称",
     "modelPlaceholder": "例如: glm-4-flash",
     "translationModelPlaceholder": "例如: glm-4、glm-4-air",
@@ -242,6 +245,7 @@
     "enableTimeFilter": "启用时间过滤",
     "timeFilterDescription": "只显示指定时间范围内的文章，提升浏览体验",
     "defaultTimeRange": "默认时间范围",
+    "timeRangeDescription": "设置默认显示的文章时间范围",
     "timeBase": "时间基准",
     "entryTime": "入库时间（推荐）",
     "publishTime": "文章发布时间",
@@ -257,7 +261,9 @@
     "feedbackIssue": "反馈问题",
     "save": "保存",
     "saveSettings": "保存设置",
-    "cancel": "取消"
+    "cancel": "取消",
+    "appName": "Aurora Feeds",
+    "appVersion": "v{version}"
   },
   "groups": {
     "title": "分组",
@@ -292,7 +298,9 @@
     "importFailed": "导入失败，请检查文件格式",
     "importing": "导入中...",
     "exporting": "导出中...",
-    "operationFailed": "操作失败，请重试"
+    "operationFailed": "操作失败，请重试",
+    "languageChanged": "语言已切换到 {language}",
+    "languageChangeFailed": "语言切换失败，请重试"
   },
   "errors": {
     "network": "网络连接失败",
@@ -327,5 +335,34 @@
   "opml": {
     "export": "导出 OPML",
     "import": "导入 OPML"
+  },
+  "languages": {
+    "zh": "中文",
+    "en": "English",
+    "ja": "日本語",
+    "ko": "한국어",
+    "fr": "Français",
+    "de": "Deutsch",
+    "es": "Español"
+  },
+  "filters": {
+    "last1Day": "最近1天",
+    "last1Week": "最近1周",
+    "last1Month": "最近1个月",
+    "last3Months": "最近3个月",
+    "last6Months": "最近6个月",
+    "last1Year": "最近1年",
+    "allTime": "全部时间",
+    "dataUpdating": "数据更新中…",
+    "displayingCount": "显示 {count} 篇文章",
+    "filteringData": "正在根据筛选条件获取数据",
+    "dateFilterActive": "{timeRange}",
+    "dateFilterNote": "左侧未读统计同步该时间范围",
+    "allTimeRange": "全部时间范围"
+  },
+  "articles": {
+    "translationLabel": "[{language}]",
+    "translatingTitle": "翻译中...",
+    "timeSeparator": "·"
   }
 }

@@ -306,6 +306,39 @@ function handleBackdropClick(event: MouseEvent) {
   }
 }
 
+// 优化语言切换体验
+async function handleLanguageChange(newLanguage: string) {
+  if (newLanguage === currentLanguage.value.code) {
+    return
+  }
+
+  try {
+    // 获取新语言的对象信息
+    const newLocale = availableLocales.value.find(locale => locale.code === newLanguage)
+
+    // 立即切换语言
+    await setLanguage(newLanguage)
+
+    // 显示成功提示
+    console.log(t('toast.languageChanged', {
+      language: newLocale?.name || newLanguage
+    }))
+
+    // 设置保存到本地存储
+    localStorage.setItem('preferred-language', newLanguage)
+
+  } catch (error) {
+    console.error('Language switch failed:', error)
+    console.error(t('toast.languageChangeFailed'))
+
+    // 恢复到原来的语言
+    const select = document.querySelector('.form-select') as HTMLSelectElement
+    if (select) {
+      select.value = currentLanguage.value.code
+    }
+  }
+}
+
 </script>
 
 <template>
@@ -325,7 +358,7 @@ function handleBackdropClick(event: MouseEvent) {
               <label>{{ t('settings.language') }}</label>
               <select
                 v-model="currentLanguage.code"
-                @change="setLanguage(currentLanguage.code)"
+                @change="handleLanguageChange(currentLanguage.code)"
                 class="form-select"
               >
                 <option
@@ -380,13 +413,13 @@ function handleBackdropClick(event: MouseEvent) {
           </section>
 
           <section class="settings-section">
-            <h3>AI 配置</h3>
+            <h3>{{ t('settings.aiConfig') }}</h3>
             <div class="ai-config-grid">
               <div class="ai-config-card">
                 <div class="ai-config-card__header">
                   <div>
-                    <p class="ai-config-card__title">摘要生成</p>
-                    <p class="ai-config-card__subtitle">用于 AI 摘要与自动摘要</p>
+                    <p class="ai-config-card__title">{{ t('settings.summaryGeneration') }}</p>
+                    <p class="ai-config-card__subtitle">{{ t('settings.summarySubtitle') }}</p>
                   </div>
                   <button
                     @click="testConnection('summary')"
@@ -398,44 +431,44 @@ function handleBackdropClick(event: MouseEvent) {
                       error: serviceTestResult.summary?.success === false
                     }"
                   >
-                    {{ serviceTesting.summary ? '测试中...' : '测试连接' }}
+                    {{ serviceTesting.summary ? t('common.testing') : t('settings.testConnection') }}
                   </button>
                 </div>
 
                 <div class="form-group">
-                  <label>API Key</label>
+                  <label>{{ t('settings.apiKey') }}</label>
                   <input
                     v-model="localConfig.summary.api_key"
                     type="text"
-                    placeholder="输入 GLM API Key"
+                    :placeholder="t('settings.apiKeyPlaceholder')"
                     class="form-input"
                   />
                   <p class="form-hint">
-                    获取 API Key:
+                    {{ t('settings.getApiKey') }}
                     <a href="https://open.bigmodel.cn" target="_blank">https://open.bigmodel.cn</a>
                   </p>
                 </div>
 
                 <div class="form-group">
-                  <label>API 地址</label>
+                  <label>{{ t('settings.apiUrl') }}</label>
                   <input
                     v-model="localConfig.summary.base_url"
                     type="text"
-                    placeholder="API Base URL"
+                    :placeholder="t('settings.apiUrlPlaceholder')"
                     class="form-input"
                   />
                 </div>
 
                 <div class="form-group">
-                  <label>模型名称</label>
+                  <label>{{ t('settings.modelName') }}</label>
                   <input
                     v-model="localConfig.summary.model_name"
                     type="text"
-                    placeholder="例如: glm-4-flash"
+                    :placeholder="t('settings.modelPlaceholder')"
                     class="form-input"
                   />
                   <p class="form-hint">
-                    支持模型: glm-4-flash, glm-4, glm-4-air, glm-3-turbo, gpt-3.5-turbo, claude-3-haiku 等
+                    {{ t('settings.supportedModels') }}
                   </p>
                 </div>
 
@@ -451,12 +484,12 @@ function handleBackdropClick(event: MouseEvent) {
               <div class="ai-config-card">
                 <div class="ai-config-card__header">
                   <div>
-                    <p class="ai-config-card__title">内容翻译</p>
-                    <p class="ai-config-card__subtitle">用于全文翻译与标题翻译</p>
+                    <p class="ai-config-card__title">{{ t('settings.contentTranslation') }}</p>
+                    <p class="ai-config-card__subtitle">{{ t('settings.translationSubtitle') }}</p>
                   </div>
                   <div class="ai-config-card__actions">
                     <button class="ghost-btn" type="button" @click="copySummaryToTranslation">
-                      沿用摘要配置
+                      {{ t('settings.useSummaryConfig') }}
                     </button>
                     <button
                       @click="testConnection('translation')"
@@ -468,37 +501,37 @@ function handleBackdropClick(event: MouseEvent) {
                         error: serviceTestResult.translation?.success === false
                       }"
                     >
-                      {{ serviceTesting.translation ? '测试中...' : '测试连接' }}
+                      {{ serviceTesting.translation ? t('common.testing') : t('settings.testConnection') }}
                     </button>
                   </div>
                 </div>
 
                 <div class="form-group">
-                  <label>API Key</label>
+                  <label>{{ t('settings.apiKey') }}</label>
                   <input
                     v-model="localConfig.translation.api_key"
                     type="text"
-                    placeholder="输入翻译使用的 API Key"
+                    :placeholder="t('settings.translationApiKeyPlaceholder')"
                     class="form-input"
                   />
                 </div>
 
                 <div class="form-group">
-                  <label>API 地址</label>
+                  <label>{{ t('settings.apiUrl') }}</label>
                   <input
                     v-model="localConfig.translation.base_url"
                     type="text"
-                    placeholder="API Base URL"
+                    :placeholder="t('settings.apiUrlPlaceholder')"
                     class="form-input"
                   />
                 </div>
 
                 <div class="form-group">
-                  <label>模型名称</label>
+                  <label>{{ t('settings.modelName') }}</label>
                   <input
                     v-model="localConfig.translation.model_name"
                     type="text"
-                    placeholder="例如: glm-4、glm-4-air"
+                    :placeholder="t('settings.translationModelPlaceholder')"
                     class="form-input"
                   />
                 </div>
@@ -515,7 +548,7 @@ function handleBackdropClick(event: MouseEvent) {
           </section>
 
           <section class="settings-section">
-            <h3>AI 功能</h3>
+            <h3>{{ t('settings.aiFeatures') }}</h3>
             <div class="form-group">
               <label class="checkbox-label">
                 <input
@@ -523,8 +556,8 @@ function handleBackdropClick(event: MouseEvent) {
                   type="checkbox"
                   class="form-checkbox"
                 />
-                自动生成摘要
-                <span class="checkbox-hint">新文章自动生成AI摘要</span>
+                {{ t('settings.autoSummary') }}
+                <span class="checkbox-hint">{{ t('settings.autoSummaryHint') }}</span>
               </label>
             </div>
 
@@ -535,8 +568,8 @@ function handleBackdropClick(event: MouseEvent) {
                   type="checkbox"
                   class="form-checkbox"
                 />
-                自动翻译
-                <span class="checkbox-hint">新文章自动翻译到指定语言</span>
+                {{ t('settings.autoTranslation') }}
+                <span class="checkbox-hint">{{ t('settings.autoTranslationHint') }}</span>
               </label>
             </div>
 
@@ -547,8 +580,8 @@ function handleBackdropClick(event: MouseEvent) {
                   type="checkbox"
                   class="form-checkbox"
                 />
-                自动标题翻译
-                <span class="checkbox-hint">在原标题下方显示翻译后的标题</span>
+                {{ t('settings.autoTitleTranslation') }}
+                <span class="checkbox-hint">{{ t('settings.autoTitleTranslationHint') }}</span>
               </label>
             </div>
 
@@ -556,21 +589,21 @@ function handleBackdropClick(event: MouseEvent) {
               class="form-group"
               v-if="localConfig.features.auto_translation || localConfig.features.auto_title_translation"
             >
-              <label>翻译目标语言</label>
+              <label>{{ t('settings.translationTargetLanguage') }}</label>
               <select v-model="localConfig.features.translation_language" class="form-select">
-                <option value="zh">中文</option>
-                <option value="en">English</option>
-                <option value="ja">日本語</option>
-                <option value="ko">한국어</option>
-                <option value="fr">Français</option>
-                <option value="de">Deutsch</option>
-                <option value="es">Español</option>
+                <option value="zh">{{ t('languages.zh') }}</option>
+                <option value="en">{{ t('languages.en') }}</option>
+                <option value="ja">{{ t('languages.ja') }}</option>
+                <option value="ko">{{ t('languages.ko') }}</option>
+                <option value="fr">{{ t('languages.fr') }}</option>
+                <option value="de">{{ t('languages.de') }}</option>
+                <option value="es">{{ t('languages.es') }}</option>
               </select>
             </div>
           </section>
 
           <section class="settings-section">
-            <h3>订阅更新</h3>
+            <h3>{{ t('settings.subscriptionUpdate') }}</h3>
             <div class="form-group">
               <label>
                 <input
@@ -578,12 +611,12 @@ function handleBackdropClick(event: MouseEvent) {
                   type="checkbox"
                   class="form-checkbox"
                 />
-                自动刷新订阅
+                {{ t('settings.autoRefresh') }}
               </label>
             </div>
 
             <div class="form-group">
-              <label>刷新间隔（分钟）</label>
+              <label>{{ t('settings.refreshInterval') }}</label>
               <input
                 v-model.number="fetchInterval"
                 type="number"
@@ -592,13 +625,13 @@ function handleBackdropClick(event: MouseEvent) {
                 class="form-input"
               />
               <p class="form-hint">
-                设置RSS订阅的自动刷新间隔（5-1440分钟），推荐720分钟（12小时）
+                {{ t('settings.refreshIntervalDescription') }}
               </p>
             </div>
           </section>
 
           <section class="settings-section">
-            <h3>显示设置</h3>
+            <h3>{{ t('settings.displaySettings') }}</h3>
             <div class="form-group">
               <label>
                 <input
@@ -606,27 +639,27 @@ function handleBackdropClick(event: MouseEvent) {
                   type="checkbox"
                   class="form-checkbox"
                 />
-                启用时间过滤
+                {{ t('settings.enableTimeFilter') }}
               </label>
-              <p class="form-hint">只显示指定时间范围内的文章，提升浏览体验</p>
+              <p class="form-hint">{{ t('settings.timeFilterDescription') }}</p>
             </div>
 
             <div class="form-group" v-if="enableDateFilter">
-              <label>默认时间范围</label>
+              <label>{{ t('settings.defaultTimeRange') }}</label>
               <select v-model="defaultDateRange" class="form-select">
-                <option value="1d">最近1天</option>
-                <option value="7d">最近1周</option>
-                <option value="30d">最近1个月</option>
-                <option value="90d">最近3个月</option>
-                <option value="180d">最近6个月</option>
-                <option value="365d">最近1年</option>
-                <option value="all">全部时间</option>
+                <option value="1d">{{ t('time.last1Day') }}</option>
+                <option value="7d">{{ t('time.last1Week') }}</option>
+                <option value="30d">{{ t('time.last1Month') }}</option>
+                <option value="90d">{{ t('time.last3Months') }}</option>
+                <option value="180d">{{ t('time.last6Months') }}</option>
+                <option value="365d">{{ t('time.last1Year') }}</option>
+                <option value="all">{{ t('time.allTime') }}</option>
               </select>
-              <p class="form-hint">设置默认显示的文章时间范围</p>
+              <p class="form-hint">{{ t('settings.timeRangeDescription') }}</p>
             </div>
 
             <div class="form-group" v-if="enableDateFilter">
-              <label>时间基准</label>
+              <label>{{ t('settings.timeBase') }}</label>
               <div class="radio-group">
                 <label class="radio-label">
                   <input
@@ -635,7 +668,7 @@ function handleBackdropClick(event: MouseEvent) {
                     value="inserted_at"
                     class="form-radio"
                   />
-                  入库时间（推荐）
+                  {{ t('settings.entryTime') }}
                 </label>
                 <label class="radio-label">
                   <input
@@ -644,43 +677,43 @@ function handleBackdropClick(event: MouseEvent) {
                     value="published_at"
                     class="form-radio"
                   />
-                  文章发布时间
+                  {{ t('settings.publishTime') }}
                 </label>
               </div>
               <p class="form-hint">
-                入库时间更可靠，文章发布时间可能有空值
+                {{ t('settings.timeBaseDescription') }}
               </p>
             </div>
           </section>
 
           <section class="settings-section">
-            <h3>关于</h3>
+            <h3>{{ t('settings.about') }}</h3>
             <div class="about-content">
               <div class="about-header">
-                <h4 class="app-title">RSS READER</h4>
-                <span class="app-version">v0.1.0</span>
+                <h4 class="app-title">{{ t('settings.appName', { name: 'Aurora Feeds' }) }}</h4>
+                <span class="app-version">{{ t('settings.appVersion', { version: '0.1.0' }) }}</span>
               </div>
               <p class="app-description">
-                一个现代化的本地RSS阅读器，支持AI摘要、智能翻译和优雅的阅读体验。
+                {{ t('settings.aboutDescription') }}
               </p>
               <div class="about-features">
-                <span class="feature-badge">📰 RSS订阅</span>
-                <span class="feature-badge">🤖 AI摘要</span>
-                <span class="feature-badge">🌐 智能翻译</span>
-                <span class="feature-badge">⭐ 收藏管理</span>
+                <span class="feature-badge">📰 {{ t('settings.features.rss') }}</span>
+                <span class="feature-badge">🤖 {{ t('settings.features.ai') }}</span>
+                <span class="feature-badge">🌐 {{ t('settings.features.translation') }}</span>
+                <span class="feature-badge">⭐ {{ t('settings.features.favorites') }}</span>
               </div>
               <div class="about-links">
                 <a href="https://github.com/yourusername/RSSpage" target="_blank" class="about-link">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                     <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
                   </svg>
-                  GitHub 项目主页
+                  {{ t('settings.projectHomepage') }}
                 </a>
                 <a href="https://github.com/yourusername/RSSpage/issues" target="_blank" class="about-link">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                     <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8zm9 3a1 1 0 11-2 0 1 1 0 012 0zM8 4a.905.905 0 00-.9.995l.35 3.507a.552.552 0 001.1 0l.35-3.507A.905.905 0 008 4z"/>
                   </svg>
-                  反馈问题
+                  {{ t('settings.feedbackIssue') }}
                 </a>
               </div>
               <p class="about-footer">
@@ -691,8 +724,8 @@ function handleBackdropClick(event: MouseEvent) {
         </div>
 
         <div class="modal-footer">
-          <button @click="handleClose" class="btn btn-secondary">取消</button>
-          <button @click="saveSettings" class="btn btn-primary">保存</button>
+          <button @click="handleClose" class="btn btn-secondary">{{ t('settings.cancel') }}</button>
+          <button @click="saveSettings" class="btn btn-primary">{{ t('settings.save') }}</button>
         </div>
       </div>
     </div>

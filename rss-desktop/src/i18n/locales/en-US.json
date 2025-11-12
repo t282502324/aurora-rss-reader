@@ -212,6 +212,7 @@
     "rssHubDeployGuide": "Deploy RSSHub: RSSHub Deployment Guide",
     "testRssHub": "Test RSSHub Connectivity",
     "testingRssHub": "Testing...",
+    "testConnection": "Test Connection",
     "aiConfig": "AI Configuration",
     "summaryGeneration": "Summary Generation",
     "summarySubtitle": "For AI summarization and auto-summary",
@@ -220,8 +221,10 @@
     "useSummaryConfig": "Use summary configuration",
     "apiKey": "API Key",
     "apiKeyPlaceholder": "Enter GLM API Key",
+    "translationApiKeyPlaceholder": "Enter API Key for translation",
     "getApiKey": "Get API Key:",
     "apiUrl": "API URL",
+    "apiUrlPlaceholder": "API Base URL",
     "modelName": "Model Name",
     "modelPlaceholder": "e.g.: glm-4-flash",
     "translationModelPlaceholder": "e.g.: glm-4, glm-4-air",
@@ -242,6 +245,7 @@
     "enableTimeFilter": "Enable Time Filter",
     "timeFilterDescription": "Only display articles within specified time range for better browsing experience",
     "defaultTimeRange": "Default Time Range",
+    "timeRangeDescription": "Set default article time range to display",
     "timeBase": "Time Base",
     "entryTime": "Entry Time (Recommended)",
     "publishTime": "Article Publish Time",
@@ -257,7 +261,9 @@
     "feedbackIssue": "Feedback Issues",
     "save": "Save",
     "saveSettings": "Save Settings",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "appName": "Aurora Feeds",
+    "appVersion": "v{version}"
   },
   "groups": {
     "title": "Groups",
@@ -292,7 +298,9 @@
     "importFailed": "Import failed, please check file format",
     "importing": "Importing...",
     "exporting": "Exporting...",
-    "operationFailed": "Operation failed, please try again"
+    "operationFailed": "Operation failed, please try again",
+    "languageChanged": "Language switched to {language}",
+    "languageChangeFailed": "Language switch failed, please try again"
   },
   "errors": {
     "network": "Network connection failed",
@@ -327,5 +335,34 @@
   "opml": {
     "export": "Export OPML",
     "import": "Import OPML"
+  },
+  "languages": {
+    "zh": "中文",
+    "en": "English",
+    "ja": "日本語",
+    "ko": "한국어",
+    "fr": "Français",
+    "de": "Deutsch",
+    "es": "Español"
+  },
+  "filters": {
+    "last1Day": "Last 1 day",
+    "last1Week": "Last 1 week",
+    "last1Month": "Last 1 month",
+    "last3Months": "Last 3 months",
+    "last6Months": "Last 6 months",
+    "last1Year": "Last 1 year",
+    "allTime": "All Time",
+    "dataUpdating": "Updating data…",
+    "displayingCount": "Showing {count} articles",
+    "filteringData": "Getting data based on filter criteria",
+    "dateFilterActive": "{timeRange}",
+    "dateFilterNote": "Left unread count syncs with this time range",
+    "allTimeRange": "All time range"
+  },
+  "articles": {
+    "translationLabel": "[{language}]",
+    "translatingTitle": "Translating...",
+    "timeSeparator": "·"
   }
 }

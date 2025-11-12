@@ -111,56 +111,89 @@ const FEED_ICON_COLORS = [
 const brokenFeedIcons = ref<Record<string, string>>({})
 
 // 布局状态管理
-const DEFAULT_SIDEBAR_WIDTH = 280
-const DEFAULT_DETAILS_WIDTH = 420
 const DEFAULT_VIEWPORT_WIDTH = typeof window !== 'undefined' ? window.innerWidth : 1440
-const sidebarWidth = ref(DEFAULT_SIDEBAR_WIDTH)
-const detailsWidth = ref(DEFAULT_DETAILS_WIDTH)
-const isDraggingLeft = ref(false)
-const isDraggingRight = ref(false)
+const DEFAULT_SIDEBAR_RATIO = 0.26
+const DEFAULT_DETAILS_RATIO = 0.38
 const RESIZER_GUTTER = 6 // 两条分隔线总宽度
-const MIN_TIMELINE_WIDTH = 300
-const MIN_SIDEBAR_WIDTH = 210
-const MAX_SIDEBAR_WIDTH = 460
-const MIN_DETAILS_WIDTH = 280
-const MAX_SIDEBAR_RATIO = 0.4
-const MAX_DETAILS_RATIO = 0.48
-const sidebarRatio = ref(DEFAULT_SIDEBAR_WIDTH / DEFAULT_VIEWPORT_WIDTH)
-const detailsRatio = ref(DEFAULT_DETAILS_WIDTH / DEFAULT_VIEWPORT_WIDTH)
-const viewportWidth = ref(DEFAULT_VIEWPORT_WIDTH)
+const MIN_TIMELINE_WIDTH = 240
+const MIN_SIDEBAR_WIDTH = 180
+const MIN_DETAILS_WIDTH = 260
 const SIDEBAR_RATIO_KEY = 'rss-layout-sidebar-ratio'
 const DETAILS_RATIO_KEY = 'rss-layout-details-ratio'
-const SIDEBAR_WIDTH_KEY = 'rss-layout-sidebar-width'
-const DETAILS_WIDTH_KEY = 'rss-layout-details-width'
+const sidebarRatio = ref(DEFAULT_SIDEBAR_RATIO)
+const detailsRatio = ref(DEFAULT_DETAILS_RATIO)
+const viewportWidth = ref(DEFAULT_VIEWPORT_WIDTH)
+const isDraggingLeft = ref(false)
+const isDraggingRight = ref(false)
+
+function getViewport() {
+  return viewportWidth.value || DEFAULT_VIEWPORT_WIDTH
+}
+
+const sidebarWidth = computed(() => Math.round(getViewport() * sidebarRatio.value))
+const detailsWidth = computed(() => Math.round(getViewport() * detailsRatio.value))
+const logoSize = computed(() => {
+  const width = sidebarWidth.value || MIN_SIDEBAR_WIDTH
+  return Math.min(44, Math.max(30, width * 0.12))
+})
+function minSidebarRatio() {
+  return MIN_SIDEBAR_WIDTH / getViewport()
+}
+
+function minDetailsRatio() {
+  return MIN_DETAILS_WIDTH / getViewport()
+}
+
+function minTimelineRatio() {
+  return MIN_TIMELINE_WIDTH / getViewport()
+}
 
 function refreshViewportWidth() {
   if (typeof window === 'undefined') return
   viewportWidth.value = window.innerWidth
 }
 
-function updateRatiosFromWidths() {
-  if (!viewportWidth.value) return
-  sidebarRatio.value = sidebarWidth.value / viewportWidth.value
-  detailsRatio.value = detailsWidth.value / viewportWidth.value
-}
+const layoutStyle = computed(() => ({
+  '--sidebar-width': `${sidebarWidth.value}px`,
+  '--details-width': `${detailsWidth.value}px`,
+}))
 
-function applyRatiosToWidths(options: { preserveRatios?: boolean } = {}) {
-  if (!viewportWidth.value) return
-  const viewport = viewportWidth.value
-  const totalRatio = Math.max(sidebarRatio.value + detailsRatio.value, 0.0001)
-  const desiredSidebar = viewport * (sidebarRatio.value / totalRatio)
-  const desiredDetails = viewport * (detailsRatio.value / totalRatio)
-  sidebarWidth.value = clampSidebarWidth(desiredSidebar, desiredDetails)
-  detailsWidth.value = clampDetailsWidth(desiredDetails, sidebarWidth.value)
-  rebalanceColumnsForTimeline()
-  if (!options.preserveRatios) {
-    updateRatiosFromWidths()
+function normalizeRatios() {
+  const sidebarMin = minSidebarRatio()
+  const detailsMin = minDetailsRatio()
+  const timelineMin = minTimelineRatio()
+  sidebarRatio.value = Math.max(sidebarRatio.value, sidebarMin)
+  detailsRatio.value = Math.max(detailsRatio.value, detailsMin)
+
+  const maxSum = Math.max(0, 1 - timelineMin)
+  let currentSum = sidebarRatio.value + detailsRatio.value
+
+  if (maxSum <= 0) {
+    const base = sidebarMin + detailsMin || 0.0001
+    const scale = base / Math.max(currentSum, 0.0001)
+    sidebarRatio.value = sidebarRatio.value * scale
+    detailsRatio.value = detailsRatio.value * scale
+    return
+  }
+
+  if (currentSum > maxSum) {
+    const excess = currentSum - maxSum
+    const sidebarShare = sidebarRatio.value / currentSum
+    const detailsShare = detailsRatio.value / currentSum
+    sidebarRatio.value = Math.max(sidebarMin, sidebarRatio.value - excess * sidebarShare)
+    detailsRatio.value = Math.max(detailsMin, detailsRatio.value - excess * detailsShare)
+    currentSum = sidebarRatio.value + detailsRatio.value
+    if (currentSum > maxSum) {
+      const scale = maxSum / currentSum
+      sidebarRatio.value = Math.max(sidebarMin, sidebarRatio.value * scale)
+      detailsRatio.value = Math.max(detailsMin, detailsRatio.value * scale)
+    }
   }
 }
 
 function handleWindowResize() {
   refreshViewportWidth()
-  ensureLayoutWithinBounds({ recomputeFromRatios: true, preserveRatios: true })
+  normalizeRatios()
   saveLayoutSettings()
 }
 
@@ -393,8 +426,6 @@ function updateTheme() {
 }
 
 function saveLayoutSettings() {
-  localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.value.toString())
-  localStorage.setItem(DETAILS_WIDTH_KEY, detailsWidth.value.toString())
   localStorage.setItem(SIDEBAR_RATIO_KEY, sidebarRatio.value.toString())
   localStorage.setItem(DETAILS_RATIO_KEY, detailsRatio.value.toString())
 }
@@ -404,7 +435,6 @@ function loadLayoutSettings() {
   refreshViewportWidth()
   const savedSidebarRatio = localStorage.getItem(SIDEBAR_RATIO_KEY)
   const savedDetailsRatio = localStorage.getItem(DETAILS_RATIO_KEY)
-  const hasRatio = !!(savedSidebarRatio || savedDetailsRatio)
 
   if (savedSidebarRatio) {
     const ratio = parseFloat(savedSidebarRatio)
@@ -419,108 +449,33 @@ function loadLayoutSettings() {
     }
   }
 
-  if (hasRatio) {
-    applyRatiosToWidths()
-    return
-  }
-
-  const savedSidebar = localStorage.getItem(SIDEBAR_WIDTH_KEY)
-  const savedDetails = localStorage.getItem(DETAILS_WIDTH_KEY)
-
-  if (savedSidebar) sidebarWidth.value = parseInt(savedSidebar, 10)
-  if (savedDetails) detailsWidth.value = parseInt(savedDetails, 10)
-  ensureLayoutWithinBounds()
+  normalizeRatios()
 }
 
 function resetLayout() {
-  sidebarWidth.value = 280
-  detailsWidth.value = 420
-  ensureLayoutWithinBounds()
+  sidebarRatio.value = DEFAULT_SIDEBAR_RATIO
+  detailsRatio.value = DEFAULT_DETAILS_RATIO
+  normalizeRatios()
   saveLayoutSettings()
   showNotification(t('toast.layoutReset'), 'info')
 }
 
-function clampSidebarWidth(width: number, referenceDetailsWidth = detailsWidth.value) {
-  const viewport = viewportWidth.value || (typeof window !== 'undefined' ? window.innerWidth : DEFAULT_VIEWPORT_WIDTH)
-  const maxSidebarByRatio = viewport * MAX_SIDEBAR_RATIO
-  const maxSidebarBasedOnTimeline = viewport - referenceDetailsWidth - MIN_TIMELINE_WIDTH - RESIZER_GUTTER
-  const maxSidebarBasedOnDetails = viewport - MIN_DETAILS_WIDTH - MIN_TIMELINE_WIDTH - RESIZER_GUTTER
-  const absoluteMax = Math.min(Math.max(MAX_SIDEBAR_WIDTH, maxSidebarByRatio), Math.max(0, maxSidebarBasedOnDetails))
-  const usableMax = Math.min(absoluteMax, Math.max(0, maxSidebarBasedOnTimeline))
-  const safeMax = usableMax > 0 ? usableMax : Math.max(0, absoluteMax)
-  const safeMin = Math.min(MIN_SIDEBAR_WIDTH, safeMax || MIN_SIDEBAR_WIDTH)
-  if (safeMax <= 0) return safeMin
-  const clamped = Math.min(width, safeMax)
-  return Math.max(safeMin, clamped)
+function setSidebarRatioFromClientX(clientX: number) {
+  refreshViewportWidth()
+  const viewport = getViewport()
+  const ratio = clientX / viewport
+  sidebarRatio.value = ratio
+  normalizeRatios()
+  saveLayoutSettings()
 }
 
-function clampDetailsWidth(width: number, referenceSidebarWidth = sidebarWidth.value) {
-  const viewport = viewportWidth.value || (typeof window !== 'undefined' ? window.innerWidth : DEFAULT_VIEWPORT_WIDTH)
-  const maxWidthByViewport = viewport * MAX_DETAILS_RATIO
-  const maxWidthByTimeline = viewport - referenceSidebarWidth - MIN_TIMELINE_WIDTH - RESIZER_GUTTER
-  const maxWidthBySidebarReserve = viewport - MIN_SIDEBAR_WIDTH - MIN_TIMELINE_WIDTH - RESIZER_GUTTER
-  const absoluteMax = Math.min(maxWidthByViewport, Math.max(0, maxWidthBySidebarReserve))
-  const usableMax = Math.min(absoluteMax, Math.max(0, maxWidthByTimeline))
-  const safeMax = usableMax > 0 ? usableMax : Math.max(0, absoluteMax)
-  const safeMin = Math.min(MIN_DETAILS_WIDTH, safeMax || MIN_DETAILS_WIDTH)
-
-  if (safeMax <= 0) return safeMin
-  const clamped = Math.min(width, safeMax)
-  return Math.max(safeMin, clamped)
-}
-
-function ensureLayoutWithinBounds(options: { recomputeFromRatios?: boolean; preserveRatios?: boolean } = {}) {
-  if (options.recomputeFromRatios) {
-    applyRatiosToWidths({ preserveRatios: options.preserveRatios })
-    return
-  }
-  sidebarWidth.value = clampSidebarWidth(sidebarWidth.value)
-  detailsWidth.value = clampDetailsWidth(detailsWidth.value)
-  rebalanceColumnsForTimeline()
-  if (!options.preserveRatios) {
-    updateRatiosFromWidths()
-  }
-}
-
-function rebalanceColumnsForTimeline() {
-  if (!viewportWidth.value) return
-  let timelineWidth = viewportWidth.value - sidebarWidth.value - detailsWidth.value - RESIZER_GUTTER
-  if (timelineWidth >= MIN_TIMELINE_WIDTH) return
-
-  let shortage = MIN_TIMELINE_WIDTH - timelineWidth
-  let sidebarCapacity = Math.max(0, sidebarWidth.value - MIN_SIDEBAR_WIDTH)
-  let detailsCapacity = Math.max(0, detailsWidth.value - MIN_DETAILS_WIDTH)
-  let totalCapacity = sidebarCapacity + detailsCapacity
-
-  if (totalCapacity <= 0) return
-
-  if (sidebarCapacity > 0) {
-    const reduction = Math.min(shortage * (sidebarCapacity / totalCapacity), sidebarCapacity)
-    sidebarWidth.value -= reduction
-    shortage -= reduction
-    sidebarCapacity -= reduction
-    totalCapacity = sidebarCapacity + detailsCapacity
-  }
-
-  if (shortage > 0 && detailsCapacity > 0) {
-    const reduction = Math.min(shortage, detailsCapacity)
-    detailsWidth.value -= reduction
-    shortage -= reduction
-    detailsCapacity -= reduction
-    totalCapacity = sidebarCapacity + detailsCapacity
-  }
-
-  if (shortage > 0 && sidebarCapacity > 0) {
-    const extra = Math.min(shortage, sidebarCapacity)
-    sidebarWidth.value -= extra
-    shortage -= extra
-    sidebarCapacity -= extra
-  }
-
-  if (shortage > 0 && detailsCapacity > 0) {
-    const extra = Math.min(shortage, detailsCapacity)
-    detailsWidth.value -= extra
-  }
+function setDetailsRatioFromClientX(clientX: number) {
+  refreshViewportWidth()
+  const viewport = getViewport()
+  const ratio = (viewport - clientX) / viewport
+  detailsRatio.value = ratio
+  normalizeRatios()
+  saveLayoutSettings()
 }
 
 // 拖拽处理函数
@@ -540,16 +495,9 @@ function handleMouseDownRight(event: MouseEvent) {
 
 function handleMouseMove(event: MouseEvent) {
   if (isDraggingLeft.value) {
-    refreshViewportWidth()
-    sidebarWidth.value = clampSidebarWidth(event.clientX)
-    updateRatiosFromWidths()
-    saveLayoutSettings()
+    setSidebarRatioFromClientX(event.clientX)
   } else if (isDraggingRight.value) {
-    refreshViewportWidth()
-    const desiredWidth = (typeof window !== 'undefined' ? window.innerWidth : viewportWidth.value) - event.clientX
-    detailsWidth.value = clampDetailsWidth(desiredWidth)
-    updateRatiosFromWidths()
-    saveLayoutSettings()
+    setDetailsRatioFromClientX(event.clientX)
   }
 }
 
@@ -573,7 +521,7 @@ onMounted(async () => {
 
   // 加载布局设置
   loadLayoutSettings()
-  ensureLayoutWithinBounds({ recomputeFromRatios: true })
+  normalizeRatios()
 
   // 加载AI配置
   await aiStore.fetchConfig()
@@ -987,12 +935,12 @@ async function handleImportOpml(event: Event) {
     :show="showSettings" 
     @close="showSettings = false" 
   />
-  <div class="app-shell">
+  <div class="app-shell" :style="layoutStyle">
     <!-- 侧边栏 -->
-    <aside class="sidebar" :style="{ width: sidebarWidth + 'px' }">
+    <aside class="sidebar">
       <header class="sidebar__header">
         <div class="brand">
-          <LogoMark class="brand__icon" :size="32" />
+          <LogoMark class="brand__icon" :size="logoSize" />
           <div>
             <h1>Aurora Feeds</h1>
             <p class="muted">{{ t('common.local') }} {{ t('common.private') }} · {{ t('common.ai') }} {{ t('common.smart') }} {{ t('common.reading') }} {{ t('common.platform') }}</p>
@@ -1076,9 +1024,9 @@ async function handleImportOpml(event: Event) {
       </form>
 
       <div class="opml-actions">
-        <button @click="handleExportOpml" class="opml-btn">导出 OPML</button>
+        <button @click="handleExportOpml" class="opml-btn">{{ t('opml.export') }}</button>
         <button @click="triggerImportOpml" :disabled="importLoading" class="opml-btn">
-          {{ importLoading ? '导入中...' : '导入 OPML' }}
+          {{ importLoading ? t('toast.importing') : t('opml.import') }}
         </button>
         <input
           ref="fileInput"
@@ -1103,7 +1051,7 @@ async function handleImportOpml(event: Event) {
                 />
               </svg>
             </span>
-            <span class="favorites-title">我的收藏</span>
+            <span class="favorites-title">{{ t('groups.myFavorites') }}</span>
             <span class="favorites-count">{{ favoritesStore.starredStats.total_starred }}</span>
           </button>
         </div>
@@ -1122,7 +1070,7 @@ async function handleImportOpml(event: Event) {
                   <path d="M14 4h6v14a2 2 0 0 1-2 2h-4V6a2 2 0 0 0-2-2z" />
                 </svg>
               </span>
-              <span class="favorites-item-title">全部收藏</span>
+              <span class="favorites-item-title">{{ t('navigation.allFavorites') }}</span>
               <span class="favorites-item-count">{{ favoritesStore.starredStats.total_starred }}</span>
             </button>
           </div>
@@ -1172,11 +1120,11 @@ async function handleImportOpml(event: Event) {
       <div class="feed-list" v-show="!showFavoritesOnly">
         <!-- 分组控制按钮 -->
         <div class="group-controls" v-if="store.sortedGroupNames.length > 1">
-          <button @click="store.expandAllGroups" class="group-control-btn" title="展开所有分组">
-            展开全部
+          <button @click="store.expandAllGroups" class="group-control-btn" :title="t('feeds.groupControlTitle')">
+            {{ t('common.expandAll') }}
           </button>
-          <button @click="store.collapseAllGroups" class="group-control-btn" title="折叠所有分组">
-            折叠全部
+          <button @click="store.collapseAllGroups" class="group-control-btn" :title="t('feeds.groupControlCollapseTitle')">
+            {{ t('common.collapseAll') }}
           </button>
         </div>
 
@@ -1381,7 +1329,7 @@ async function handleImportOpml(event: Event) {
                 />
               </svg>
             </span>
-            <span>{{ showFavoritesOnly ? '刷新收藏' : '刷新订阅' }}</span>
+            <span>{{ showFavoritesOnly ? t('navigation.refreshFavorites') : t('navigation.refreshSubscription') }}</span>
           </button>
           <button
             v-if="showFavoritesOnly"
@@ -1408,7 +1356,7 @@ async function handleImportOpml(event: Event) {
                 />
               </svg>
             </span>
-            <span>返回订阅</span>
+            <span>{{ t('navigation.backToSubscription') }}</span>
           </button>
         </div>
       </header>
@@ -1417,7 +1365,7 @@ async function handleImportOpml(event: Event) {
         <input
           v-model="searchQuery"
           type="search"
-          placeholder="搜索文章..."
+          :placeholder="t('articles.searchPlaceholder')"
           class="search-input"
         />
         <div class="filter-buttons">
@@ -1425,37 +1373,37 @@ async function handleImportOpml(event: Event) {
             :class="['filter-btn', { active: filterMode === 'all' }]"
             @click="filterMode = 'all'"
           >
-            全部
+            {{ t('navigation.all') }}
           </button>
           <button
             :class="['filter-btn', { active: filterMode === 'unread' }]"
             @click="filterMode = 'unread'"
           >
-            未读
+            {{ t('navigation.unread') }}
           </button>
           <button
             :class="['filter-btn', { active: filterMode === 'starred' }]"
             @click="filterMode = 'starred'"
           >
-            收藏
+            {{ t('navigation.favorites') }}
           </button>
         </div>
 
         <!-- 时间过滤器 -->
         <div class="date-filter" v-if="settingsStore.settings.enable_date_filter">
-          <label>时间范围</label>
+          <label>{{ t('common.timeRange') }}</label>
           <select
             v-model="dateRangeFilter"
             class="date-select"
             :disabled="filterLoading"
           >
-            <option value="1d">最近1天</option>
-            <option value="7d">最近1周</option>
-            <option value="30d">最近1个月</option>
-            <option value="90d">最近3个月</option>
-            <option value="180d">最近6个月</option>
-            <option value="365d">最近1年</option>
-            <option value="all">全部时间</option>
+            <option value="1d">{{ t('time.last1Day') }}</option>
+            <option value="7d">{{ t('time.last1Week') }}</option>
+            <option value="30d">{{ t('time.last1Month') }}</option>
+            <option value="90d">{{ t('time.last3Months') }}</option>
+            <option value="180d">{{ t('time.last6Months') }}</option>
+            <option value="365d">{{ t('time.last1Year') }}</option>
+            <option value="all">{{ t('time.allTime') }}</option>
           </select>
           <div class="filter-stats" :class="{ 'filter-stats--loading': filterLoading }">
             <div class="filter-stats__icon" aria-hidden="true">
@@ -1481,20 +1429,20 @@ async function handleImportOpml(event: Event) {
             </div>
             <div class="filter-stats__content">
               <p class="filter-stats__title">
-                <template v-if="filterLoading">数据更新中…</template>
-                <template v-else>显示 {{ filteredEntries.length }} 篇文章</template>
+                <template v-if="filterLoading">{{ t('filters.dataUpdating') }}</template>
+                <template v-else>{{ t('filters.displayingCount', { count: filteredEntries.length }) }}</template>
               </p>
               <p class="filter-stats__meta" v-if="filterLoading">
-                正在根据筛选条件获取数据
+                {{ t('filters.filteringData') }}
               </p>
               <p class="filter-stats__meta" v-else>
                 <template v-if="isDateFilterActive">
                   <span>{{ timeFilterLabel }}</span>
                   <span class="filter-stats__separator">·</span>
-                  <span>左侧未读统计同步该时间范围</span>
+                  <span>{{ t('filters.dateFilterNote') }}</span>
                 </template>
                 <template v-else>
-                  <span>全部时间范围</span>
+                  <span>{{ t('filters.allTimeRange') }}</span>
                 </template>
               </p>
             </div>
@@ -1517,15 +1465,15 @@ async function handleImportOpml(event: Event) {
                 v-if="aiFeatures.auto_title_translation && (getTranslatedTitle(entry.id) || isTitleTranslationLoading(entry.id))"
                 class="entry-card__translated-title"
               >
-                <span class="translation-label">[{{ titleTranslationLanguageLabel }}]</span>
+                <span class="translation-label">{{ t('articles.translationLabel', { language: titleTranslationLanguageLabel }) }}</span>
                 <template v-if="getTranslatedTitle(entry.id)">
                   {{ getTranslatedTitle(entry.id) }}
                 </template>
-                <span v-else class="loading-indicator">翻译中...</span>
+                <span v-else class="loading-indicator">{{ t('articles.translatingTitle') }}</span>
               </div>
               <div class="entry-card__meta">
                 <span>{{ entry.feed_title }}</span>
-                <span>·</span>
+                <span>{{ t('articles.timeSeparator') }}</span>
                 <span>{{ formatDate(entry.published_at) }}</span>
               </div>
               <p class="entry-card__summary">
@@ -1542,7 +1490,7 @@ async function handleImportOpml(event: Event) {
           </div>
 
           <div class="empty" v-if="!filteredEntries.length">
-            {{ searchQuery ? '未找到匹配的文章' : '暂无文章，请先添加订阅或刷新' }}
+            {{ searchQuery ? t('feeds.noArticlesSearch') : t('feeds.noArticlesAdd') }}
           </div>
         </template>
       </section>
@@ -1553,43 +1501,43 @@ async function handleImportOpml(event: Event) {
       class="resizer resizer-right"
       :class="{ active: isDraggingRight }"
       @mousedown="handleMouseDownRight"
-      title="拖拽调整详情栏宽度"
+      :title="t('layout.rightResizeTitle')"
     ></div>
 
     <!-- 详情栏 -->
-    <section class="details" :style="{ width: detailsWidth + 'px' }">
+    <section class="details">
       <div v-if="currentSelectedEntry" class="details__content">
         <div class="details__header">
           <p class="muted">{{ currentSelectedEntry.feed_title }}</p>
           <h2>{{ showTranslation && translatedContent.title ? translatedContent.title : currentSelectedEntry.title }}</h2>
           <p class="muted">
-            {{ currentSelectedEntry.author || '未知作者' }} ·
+            {{ currentSelectedEntry.author || t('feeds.authorUnknown') }} {{ t('articles.timeSeparator') }}
             {{ formatDate(currentSelectedEntry.published_at) }}
           </p>
         </div>
 
         <div class="details__actions">
-          <button @click="openExternal(currentSelectedEntry.url)">打开原文</button>
+          <button @click="openExternal(currentSelectedEntry.url)">{{ t('feeds.openOriginal') }}</button>
           <button @click="toggleStar">
-            {{ currentSelectedEntry.starred ? '取消收藏' : '收藏' }}
+            {{ currentSelectedEntry.starred ? t('articles.cancelFavorite') : t('articles.addFavorite') }}
           </button>
           <button @click="handleTranslation" :disabled="translationLoading">
-            {{ translationLoading ? '翻译中...' : (showTranslation ? '显示原文' : '翻译') }}
+            {{ translationLoading ? t('ai.translating') : (showTranslation ? t('articles.showOriginal') : t('ai.translate')) }}
           </button>
           <select v-model="translationLanguage" class="lang-select">
-            <option value="zh">中文</option>
-            <option value="en">English</option>
-            <option value="ja">日本語</option>
-            <option value="ko">한국어</option>
+            <option value="zh">{{ t('languages.zh') }}</option>
+            <option value="en">{{ t('languages.en') }}</option>
+            <option value="ja">{{ t('languages.ja') }}</option>
+            <option value="ko">{{ t('languages.ko') }}</option>
           </select>
         </div>
 
         <div class="summary-card summary-card--inline">
           <div class="summary-card__content">
-            <p class="summary-card__label">AI 摘要</p>
+            <p class="summary-card__label">{{ t('ai.summaryLabel') }}</p>
             <p v-if="summaryText" class="summary-card__text">{{ summaryText }}</p>
             <p v-else class="summary-card__placeholder">
-              利用本地 GLM-4-Flash 生成三点式摘要，快速了解重点内容。
+              {{ t('ai.summaryDescription') }}
             </p>
           </div>
           <button
@@ -1597,7 +1545,7 @@ async function handleImportOpml(event: Event) {
             @click="handleSummary"
             :disabled="summaryLoading"
           >
-            {{ summaryLoading ? '生成中…' : (summaryText ? '重新生成' : '生成摘要') }}
+            {{ summaryLoading ? t('ai.generating') : (summaryText ? t('ai.regenerateButton') : t('ai.generateButton')) }}
           </button>
         </div>
 
@@ -1607,7 +1555,7 @@ async function handleImportOpml(event: Event) {
         ></article>
       </div>
       <div v-else class="empty">
-        选择一篇文章查看详情
+        {{ t('articles.selectArticle') }}
       </div>
     </section>
   </div>
@@ -1624,6 +1572,8 @@ async function handleImportOpml(event: Event) {
   overflow-x: hidden;
   overflow-y: auto;
   align-items: stretch;
+  --sidebar-width: 280px;
+  --details-width: 420px;
 }
 
 /* 分隔器样式 */
@@ -1672,25 +1622,27 @@ async function handleImportOpml(event: Event) {
   padding: 24px 16px;
   background: var(--bg-surface);
   flex-shrink: 0;
-  min-width: 210px;
-  max-width: 460px;
+  min-width: 180px;
   box-sizing: border-box;
   max-height: 100vh;
   overflow-y: auto;
   min-height: 0;
+  width: var(--sidebar-width);
 }
 
 .sidebar__header {
   display: flex;
   justify-content: space-between;
-  align-items: start;
-  margin-bottom: 16px;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 12px;
 }
 
 .brand {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-start;
+  gap: clamp(8px, 1vw, 14px);
+  flex: 1;
 }
 
 .brand__icon {
@@ -1698,13 +1650,22 @@ async function handleImportOpml(event: Event) {
 }
 
 .sidebar__header h1 {
-  font-size: 20px;
+  font-size: clamp(16px, 1.6vw, 20px);
   margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.brand p {
+  font-size: clamp(11px, 1.2vw, 13px);
+  line-height: 1.4;
+  margin: 0;
 }
 
 .header-actions {
   display: flex;
   gap: 8px;
+  align-self: flex-start;
+  margin-top: -4px;
 }
 
 .icon {
@@ -2510,6 +2471,7 @@ async function handleImportOpml(event: Event) {
   max-height: 100vh;
   min-height: 0;
   overflow: hidden;
+  width: var(--details-width);
   /* 最大宽度由JavaScript动态控制，最大可达50%屏幕宽度 */
 }
 
