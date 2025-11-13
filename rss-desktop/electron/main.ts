@@ -265,6 +265,12 @@ function stopBackend() {
  * 创建主窗口
  */
 function createWindow() {
+  // 如果有已存在但已销毁的窗口句柄，清空引用
+  if (win?.isDestroyed?.() === true) {
+    win = null
+  }
+
+  // 复用尚未销毁的窗口
   if (win) return win
 
   win = new BrowserWindow({
@@ -279,6 +285,13 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
     },
+  })
+
+  // macOS 用户关闭窗口（不退出）时，BrowserWindow 会被销毁。
+  // 清空引用，避免后续对已销毁对象调用 loadURL/loadFile 导致
+  // "TypeError: Object has been destroyed"
+  win.on('closed', () => {
+    win = null
   })
 
   // 窗口加载完成后显示
@@ -356,6 +369,7 @@ function showStartupStatus(message: string) {
 
 function loadRendererContent() {
   if (!win) return
+  if (win.isDestroyed && win.isDestroyed()) return
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)

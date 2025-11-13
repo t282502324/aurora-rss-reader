@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import utc from 'dayjs/plugin/utc'
 import { useFeedStore } from '../stores/feedStore'
 import { useAIStore } from '../stores/aiStore'
 import { useFavoritesStore } from '../stores/favoritesStore'
@@ -15,6 +16,7 @@ import LogoMark from '../components/LogoMark.vue'
 import type { Entry, Feed } from '../types'
 
 dayjs.extend(relativeTime)
+dayjs.extend(utc)
 
 const store = useFeedStore()
 const aiStore = useAIStore()
@@ -730,7 +732,8 @@ watch(
 
 function formatDate(date?: string | null) {
   if (!date) return '未知时间'
-  return dayjs(date).fromNow()
+  // 后端时间为UTC，统一转成本地再做相对时间
+  return dayjs.utc(date).local().fromNow()
 }
 
 function getTimeRangeText(dateRange: string): string {
@@ -748,24 +751,29 @@ function getTimeRangeText(dateRange: string): string {
 
 function formatLastChecked(date?: string | null) {
   if (!date) return '未刷新'
-  return dayjs(date).fromNow()
+  // 后端时间为UTC，统一转成本地再做相对时间
+  return dayjs.utc(date).local().fromNow()
 }
 
 function getFeedRefreshStatus(feed: Feed): 'ok' | 'due' | 'never' {
   const interval = settingsStore.settings.fetch_interval_minutes
   if (!feed.last_checked_at) return 'never'
   if (!interval || interval >= 1440) return 'ok'
-  const minutes = dayjs().diff(dayjs(feed.last_checked_at), 'minute')
+  const nowLocal = dayjs()
+  const lastLocal = dayjs.utc(feed.last_checked_at as string).local()
+  const minutes = nowLocal.diff(lastLocal, 'minute')
   return minutes > interval ? 'due' : 'ok'
 }
 
 function getFeedRefreshTooltip(feed: Feed): string {
   const interval = settingsStore.settings.fetch_interval_minutes
   if (!feed.last_checked_at) return `尚未刷新\n抓取间隔: ${interval} 分钟`
-  const minutes = dayjs().diff(dayjs(feed.last_checked_at), 'minute')
+  const nowLocal = dayjs()
+  const lastLocal = dayjs.utc(feed.last_checked_at).local()
+  const minutes = nowLocal.diff(lastLocal, 'minute')
   const status = getFeedRefreshStatus(feed)
-  const statusText = status === 'ok' ? '正常' : status === 'due' ? `已超时 ${minutes - interval} 分钟` : '未刷新'
-  return `最后刷新: ${dayjs(feed.last_checked_at).fromNow()}\n抓取间隔: ${interval} 分钟\n状态: ${statusText}`
+  const statusText = status === 'ok' ? '正常' : status === 'due' ? `已超时 ${Math.max(0, minutes - interval)} 分钟` : '未刷新'
+  return `最后刷新: ${lastLocal.fromNow()}\n抓取间隔: ${interval} 分钟\n状态: ${statusText}`
 }
 
 // 后台自动同步（短周期，仅同步左侧统计；避免打扰列表请求）
