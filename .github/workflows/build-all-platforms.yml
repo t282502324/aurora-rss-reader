@@ -54,8 +54,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: 'rss-desktop/package-lock.json'
+          cache: 'pnpm'
+          cache-dependency-path: 'rss-desktop/pnpm-lock.yaml'
           
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -76,6 +76,7 @@ jobs:
           key: ${{ runner.os }}-python-${{ hashFiles('backend/requirements.txt') }}
           
       - name: Cache Node dependencies
+        if: ${{ false }} # superseded by setup-node cache: 'pnpm'
         uses: actions/cache@v3
         with:
           path: |
