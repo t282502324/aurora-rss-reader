@@ -224,7 +224,6 @@ This project uses [GNU General Public License v3.0](LICENSE), which is a copylef
 ### Mid-term Plans (v0.3)
 - [ ] **Data Synchronization** - Cross-device data sync and cloud backup
 - [ ] **Plugin System** - Support for third-party plugin extensions
-- [ ] **Multi-account Support** - Support for multiple user account switching
 
 ---
 
