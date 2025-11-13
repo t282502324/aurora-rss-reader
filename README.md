@@ -27,7 +27,9 @@
 
 ## 简介
 
-Aurora RSS Reader 是一个跨平台桌面 RSS 阅读器，集成了 AI 翻译和摘要功能。支持多种布局模式，本地数据存储，以及丰富的自定义选项。
+Aurora RSS Reader 是一个现代化的跨平台桌面 RSS 阅读器，集成了 AI 翻译和摘要功能。基于 Electron + Vue 3 + FastAPI 技术栈构建，提供流畅的用户体验和强大的功能支持。支持多种布局模式，本地数据存储，以及丰富的自定义选项。
+
+**当前版本：v0.1.0**
 
 ## 功能特色
 
@@ -50,6 +52,8 @@ Aurora RSS Reader 是一个跨平台桌面 RSS 阅读器，集成了 AI 翻译�
 - **自动刷新** - 定时获取最新文章
 - **深色模式** - 支持深色和浅色主题
 - **RSSHub 支持** - 扩展 RSS 源覆盖范围
+- **窗口管理** - 优化的 macOS 窗口生命周期管理
+- **多平台支持** - Windows、macOS、Linux 全平台兼容
 
 ### 界面预览
 
@@ -185,6 +189,24 @@ aurora-rss-reader/
 └── start.sh            # 启动脚本
 ```
 
+## 📋 更新日志
+
+### v0.1.0 (当前版本)
+#### 新增功能
+- ✨ 多布局模式支持（三栏式、一栏式）
+- ✨ AI 翻译和摘要功能集成
+- ✨ 多语言界面支持（中文、英文、日语、韩语）
+- ✨ RSS 订阅分组管理
+- ✨ 文章收藏和时间过滤
+- ✨ 全文搜索功能
+- ✨ OPML 导入导出
+
+#### 优化改进
+- 🐛 修复 macOS 窗口生命周期管理问题
+- 🎨 优化界面布局和用户体验
+- 🔄 改进时区处理，统一时间显示
+- ⚡ 增强应用启动和窗口恢复性能
+
 ## 📚 文档
 
 - **[完整文档](docs/README.md)** - 所有文档的入口
@@ -193,7 +215,30 @@ aurora-rss-reader/
 - **[开发指南](docs/development/CONTRIBUTING.md)** - 贡献代码和开发设置
 - **[后端文档](docs/development/backend.md)** - 后端架构和 API
 - **[构建文档](docs/development/build.md)** - 构建和部署说明
-- **[更新日志](docs/CHANGELOG.md)** - 版本更新记录
+- **[更新日志](docs/CHANGELOG.md)** - 详细版本更新记录
+
+## ❓ 常见问题
+
+### macOS 相关
+**Q: macOS 上关闭窗口后，为什么从 dock 栏点击会报错？**
+A: 这个问题已在 v0.1.0 版本中修复。如果仍有问题，请确保使用最新版本。
+
+**Q: 如何在 macOS 上完全退出应用？**
+A: 使用 `Cmd + Q` 快捷键或右键点击 dock 图标选择退出。
+
+### 配置相关
+**Q: 如何配置 AI 服务？**
+A: 编辑 `backend/.env` 文件，添加相应的 API 密钥。详细配置请参考 [配置文档](docs/guides/RSSHUB_CONFIG_GUIDE.md)。
+
+**Q: 数据存储在哪里？**
+A: 数据默认存储在系统应用数据目录：
+- macOS: `~/Library/Application Support/Aurora RSS Reader/rss.sqlite`
+- Windows: `%APPDATA%/Aurora RSS Reader/rss.sqlite`
+- Linux: `~/.config/aurora-rss-reader/rss.sqlite`
+
+### 性能相关
+**Q: 应用启动慢怎么办？**
+A: 检查后端服务是否正常启动，可以查看终端输出的启动日志。
 
 ## 支持
 
