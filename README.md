@@ -22,8 +22,8 @@
 </p>
 
 <div align="center">
-  <img alt="Aurora RSS Reader Icon" src="images/光图标不带背景色版本.png" width="120" />
-  <img alt="Aurora RSS Reader Logo" src="images/带版本号和软件名图标.png" width="400" />
+  <img alt="Aurora RSS Reader Icon" src="images/光图标不带背景色版本.png" height="120" />
+  <img alt="Aurora RSS Reader Logo" src="images/带版本号和软件名图标.png" height="120" />
 </div>
 
 ## 简介
