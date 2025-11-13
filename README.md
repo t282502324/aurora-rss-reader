@@ -2,236 +2,285 @@
 
 ![Banner](images/banner_sharp_aurora.png)
 
-<p align="left">
-  <img alt="App Icon" src="rss-desktop/public/icons/app-release.png" width="72" height="72" />
+<p align="center">
+  <a href="https://github.com/xiongsircool/aurora-rss-reader">
+    <img alt="GitHub stars" src="https://img.shields.io/github/stars/xiongsircool/aurora-rss-reader?style=social">
+  </a>
+  <a href="https://github.com/xiongsircool/aurora-rss-reader">
+    <img alt="GitHub forks" src="https://img.shields.io/github/forks/xiongsircool/aurora-rss-reader?style=social">
+  </a>
+  <a href="https://github.com/xiongsircool/aurora-rss-reader/issues">
+    <img alt="GitHub issues" src="https://img.shields.io/github/issues/xiongsircool/aurora-rss-reader">
+  </a>
+  <a href="https://github.com/xiongsircool/aurora-rss-reader/blob/main/LICENSE">
+    <img alt="License: GPL v3" src="https://img.shields.io/badge/License-GPLv3-blue.svg">
+  </a>
 </p>
 
-<!-- 技术栈：Electron · Vue 3 · FastAPI · SQLite · Pinia · Vite -->
+<p align="center">
+  <a href="README.md">🇨🇳 中文</a> • <a href="README_EN.md">🇺🇸 English</a>
+</p>
+
+<div align="center">
+  <img alt="Aurora RSS Reader" src="images/带版本号和软件名图标.png" height="120" />
+</div>
 
 ## 简介
 
-Aurora 是一款跨平台桌面 RSS 阅读器，提供现代的三栏阅读体验、订阅分组与收藏、OPML 导入导出等基础能力；结合可配置的大语言模型，对文章进行自动化的摘要与翻译增强，同时提供多语言界面与 RSSHub 支持。
+Aurora RSS Reader 是一个现代化的跨平台桌面 RSS 阅读器，集成了 AI 翻译和摘要功能。基于 Electron + Vue 3 + FastAPI 技术栈构建，提供流畅的用户体验和强大的功能支持。支持多种布局模式，本地数据存储，以及丰富的自定义选项。
 
-## ✨ 功能特性
+**当前版本：v0.1.0**
 
-- 订阅与阅读：分组管理、三栏布局、全文预览、未读/收藏筛选、快速搜索
-- OPML：一键导入/导出订阅，便于迁移与备份
-- 收藏与状态：收藏、标记已读，支持按分组或订阅源查看收藏
-- AI 增强：由可配置的 OpenAI 兼容大语言模型自动进行 AI 增强（摘要/翻译），可手动触发或按设置自动执行；支持标题单独翻译与长文分段翻译
-- 多语言界面：内置中文、英文、日语、韩语
-- RSSHub：支持自定义镜像与 URL 映射，后端代为请求以规避 CORS
-- 刷新与过滤：定时刷新；按发布时间/入库时间与范围过滤时间线
-- 体验优化：深/浅色主题、可拖拽布局比例、错误与进度提示，本地数据库缓存便于离线阅读
+## 功能特色
 
-## 📸 截图
+### 阅读体验
+- **多种布局模式** - 支持三栏式和一栏式布局
+- **分组管理** - 将 RSS 源按分类整理
+- **全文搜索** - 在标题和内容中快速查找
+- **收藏功能** - 收藏重要文章便于后续阅读
+- **时间过滤** - 按发布时间筛选文章
 
+### 智能功能
+- **文章摘要** - 自动生成文章要点，快速了解内容
+- **多语言翻译** - 支持全文和标题翻译，阅读无障碍
+- **多语言界面** - 中文、英文、日语、韩语界面支持
+- **灵活配置** - 支持多种翻译和摘要服务
+
+### 系统功能
+- **本地存储** - SQLite 数据库，离线可用
+- **OPML 导入导出** - 方便数据迁移
+- **自动刷新** - 定时获取最新文章
+- **深色模式** - 支持深色和浅色主题
+- **RSSHub 支持** - 扩展 RSS 源覆盖范围
+- **窗口管理** - 优化的 macOS 窗口生命周期管理
+- **多平台支持** - Windows、macOS、Linux 全平台兼容
+
+### 界面预览
+
+#### 🎨 布局模式
 <div align="center">
-  <figure style="display:inline-block;margin:0 16px 18px;text-align:center;">
-    <img src="images/appimages/应用主页截图.png" alt="主页" style="width:360px;border-radius:14px;box-shadow:0 6px 30px rgba(15,17,21,.18);" />
-    <figcaption>桌面端三栏布局</figcaption>
-  </figure>
-  <figure style="display:inline-block;margin:0 16px 18px;text-align:center;">
-    <img src="images/appimages/设置长截图.png" alt="设置" style="width:360px;height:420px;object-fit:cover;object-position:top;border-radius:14px;box-shadow:0 6px 30px rgba(15,17,21,.18);" />
-    <figcaption>设置（AI · 刷新 · RSSHub）</figcaption>
-  </figure>
+  <table>
+    <tr>
+      <td align="center" width="60%">
+        <img src="images/appimages/三栏式布局.png" alt="三栏式布局" width="100%" style="max-width:600px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.12);" />
+        <br><strong>三栏式布局</strong>
+        <br><em>经典桌面阅读体验</em>
+      </td>
+      <td align="center" width="40%">
+        <img src="images/appimages/一拦式布局.png" alt="一栏式布局" width="100%" style="max-width:280px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.12);" />
+        <br><strong>一栏式布局</strong>
+        <br><em>专注阅读模式</em>
+      </td>
+    </tr>
+  </table>
 </div>
 
+#### 🌍 多语言界面
 <div align="center">
-  <figure style="display:inline-block;margin:0 16px 18px;text-align:center;">
-    <img src="images/appimages/自动翻译和自动摘要示意图.png" alt="AI 翻译与摘要" style="width:360px;border-radius:14px;box-shadow:0 6px 30px rgba(15,17,21,.18);" />
-    <figcaption>自动翻译 + 自动摘要</figcaption>
-  </figure>
-  <figure style="display:inline-block;margin:0 16px 18px;text-align:center;">
-    <img src="images/appimages/RSSHUB订阅支持景象设置.png" alt="RSSHub 配置" style="width:360px;border-radius:14px;box-shadow:0 6px 30px rgba(15,17,21,.18);" />
-    <figcaption>RSSHub 镜像与测试</figcaption>
-  </figure>
+  <table>
+    <tr>
+      <td align="center" width="25%">
+        <img src="images/appimages/多语言支持中文.png" alt="中文界面" width="100%" style="max-width:200px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.1);" />
+        <br><strong>🇨🇳 中文</strong>
+      </td>
+      <td align="center" width="25%">
+        <img src="images/appimages/多语言支持英文.png" alt="English Interface" width="100%" style="max-width:200px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.1);" />
+        <br><strong>🇺🇸 English</strong>
+      </td>
+      <td align="center" width="25%">
+        <img src="images/appimages/多语言支持日语.png" alt="日本語" width="100%" style="max-width:200px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.1);" />
+        <br><strong>🇯🇵 日本語</strong>
+      </td>
+      <td align="center" width="25%">
+        <img src="images/appimages/多语言支持韩文.png" alt="한국어" width="100%" style="max-width:200px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.1);" />
+        <br><strong>🇰🇷 한국어</strong>
+      </td>
+    </tr>
+  </table>
 </div>
 
+#### ⚙️ 核心功能
 <div align="center">
-  <figure style="display:inline-block;margin:0 12px 16px;text-align:center;">
-    <img src="images/appimages/支持自定义订阅的分类标签.png" alt="分组标签" style="width:300px;border-radius:12px;box-shadow:0 6px 30px rgba(15,17,21,.12);" />
-    <figcaption>订阅分组 / 标签</figcaption>
-  </figure>
-  <figure style="display:inline-block;margin:0 12px 16px;text-align:center;">
-    <img src="images/appimages/展示时间过滤自动刷新订阅时间设定.png" alt="时间过滤与自动刷新" style="width:300px;border-radius:12px;box-shadow:0 6px 30px rgba(15,17,21,.12);" />
-    <figcaption>时间过滤与自动刷新</figcaption>
-  </figure>
-  <figure style="display:inline-block;margin:0 12px 16px;text-align:center;">
-    <img src="images/appimages/多语言支持中文.png" alt="多语言-中文" style="width:300px;border-radius:12px;box-shadow:0 6px 30px rgba(15,17,21,.12);" />
-    <figcaption>界面：中文</figcaption>
-  </figure>
+  <table>
+    <tr>
+      <td align="center" width="33.33%">
+        <img src="images/appimages/支持订阅分组.png" alt="分组管理" width="100%" style="max-width:300px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,0.1);" />
+        <br><strong>📁 订阅源分组</strong>
+        <br><em>智能分类管理</em>
+      </td>
+      <td align="center" width="33.33%">
+        <img src="images/appimages/支持订阅信息时间过滤设定.png" alt="时间过滤" width="100%" style="max-width:300px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,0.1);" />
+        <br><strong>⏰ 时间过滤</strong>
+        <br><em>精准内容筛选</em>
+      </td>
+      <td align="center" width="33.33%">
+        <img src="images/appimages/支持特定内容收藏.png" alt="收藏功能" width="100%" style="max-width:300px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,0.1);" />
+        <br><strong>⭐ 收藏功能</strong>
+        <br><em>重要内容标记</em>
+      </td>
+    </tr>
+  </table>
 </div>
 
-<div align="center">
-  <figure style="display:inline-block;margin:0 10px 14px;text-align:center;">
-    <img src="images/appimages/多语言支持英文.png" alt="多语言-英文" style="width:240px;border-radius:10px;box-shadow:0 4px 20px rgba(15,17,21,.1);" />
-    <figcaption>界面：英文</figcaption>
-  </figure>
-  <figure style="display:inline-block;margin:0 10px 14px;text-align:center;">
-    <img src="images/appimages/多语言支持日语.png" alt="多语言-日语" style="width:240px;border-radius:10px;box-shadow:0 4px 20px rgba(15,17,21,.1);" />
-    <figcaption>界面：日语</figcaption>
-  </figure>
-  <figure style="display:inline-block;margin:0 10px 14px;text-align:center;">
-    <img src="images/appimages/多语言支持韩文.png" alt="多语言-韩文" style="width:240px;border-radius:10px;box-shadow:0 4px 20px rgba(15,17,21,.1);" />
-    <figcaption>界面：韩语</figcaption>
-  </figure>
-</div>
+## 快速开始
 
-## 🧱 架构概览
+### 系统要求
+- Node.js 18+
+- Python 3.12+
+- pnpm 8+
 
-- 桌面壳：Electron 主进程启动并托管后端服务（`rss-desktop/electron/main.ts`）
-- 前端：Vue 3 + Vite + Pinia + vue-router + vue-i18n（`rss-desktop/src`）
-- 后端：FastAPI + SQLModel + httpx + APScheduler（`backend/app`）
-- 数据库存储：SQLite（默认 `backend/data/rss.sqlite`）
-- 刷新任务：APScheduler 周期拉取订阅（默认 `fetch_interval_minutes`）
-- AI 能力：通过 OpenAI 兼容模型执行摘要与翻译（支持长文分段并发翻译与本地缓存）
-
-## 🚀 快速开始
-
-### 环境要求
-
-当前开发环境实测版本（用于参考）：
-
-| 组件    | 实测版本 |
-| ------- | -------- |
-| Node.js | 22.21.1  |
-| pnpm    | 10.21.0  |
-| Python  | 3.12.12  |
-
-> 提示：如使用其他版本，请确保能通过 `pnpm dev` 与 `curl http://127.0.0.1:8787/api/health` 这两个最小自检。
-
-### 安装与运行
-
-1) 后端依赖与环境
-
+### 安装运行
 ```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r requirements.txt  # 或 pip install -e .
-cp .env.example .env
-python -m scripts.migrate
-```
+# 克隆仓库
+git clone https://github.com/xiongsircool/aurora-rss-reader.git
+cd aurora-rss-reader
 
-2) 配置后端 `.env`
-
-`backend/.env` 示例（敏感值留空，首次可在应用内设置）：
-
-```env
-APP_ENV=development
-API_HOST=127.0.0.1
-API_PORT=8787
-FETCH_INTERVAL_MINUTES=15
-
-RSSHUB_BASE=https://rsshub.app
-
-GLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4/  # 默认示例，可替换任意 OpenAI 兼容 API
-GLM_MODEL=glm-4-flash                          # 示例模型，按需调整
-GLM_API_KEY=                                   # OpenAI 兼容 API 的密钥
-```
-
-3) 前端依赖与开发
-
-```bash
-cd ../rss-desktop
-pnpm install
-pnpm dev  # 并行启动前端与后端（UI: 5173, API: 8787）
-```
-
-可选：仅前端 `pnpm dev:frontend`，仅后端 `pnpm dev:backend`。
-
-### 打包桌面应用（Electron）
-
-```bash
-cd rss-desktop
-pnpm build   # 构建前端与类型检查
-pnpm pack    # electron-builder 生成安装包（release/<version>/）
-```
-
-### 一键启动与自检（start.sh）
-
-首次使用，建议通过仓库根目录的 `start.sh` 完成环境准备与快速联调：
-
-1) 前置条件
-
-- 已安装 `Node >= 18`、`pnpm`、`Python >= 3.9`
-- 复制后端环境：`cp backend/.env.example backend/.env`，如需使用 AI，请在 `.env` 中填写 `GLM_API_KEY`
-
-2) 运行
-
-```bash
+# 一键启动
 chmod +x start.sh
 ./start.sh
 ```
 
-脚本会：
-- 创建并使用 `backend/.venv`，安装后端依赖
-- 安装前端依赖 `rss-desktop/node_modules`
-- 初始化数据库 `backend/data/rss.sqlite`
-- 启动前端开发服务器（Electron 在开发模式会自动托管后端）
+启动脚本会自动：
+- 创建 Python 虚拟环境
+- 安装前后端依赖
+- 初始化数据库
+- 启动 Electron 应用
 
-3) 快速自检
+### 访问地址
+- **桌面应用**：自动打开 Electron 窗口
+- **Web 界面**：http://localhost:5173
+- **API 服务**：http://127.0.0.1:15432
 
-- 浏览器访问 UI：`http://localhost:5173`
-- 健康检查 API：
-  ```bash
-  curl http://127.0.0.1:8787/api/health
-  # => {"status":"ok"}
-  ```
-  若失败，请检查 `.env`、端口占用与控制台输出。
+### 配置文件
+编辑 `backend/.env` 配置 AI 和 RSSHub：
 
-## ⚙️ 配置与特性
+```env
+# RSSHub
+RSSHUB_BASE=https://rsshub.app
 
-- AI 配置：在设置中填写 OpenAI 兼容 API 的 Base URL、Model 与 API Key；可独立开启「自动摘要」「自动翻译」「标题自动翻译」，并选择翻译目标语言
-- RSSHub：在设置中配置镜像地址并测试连通性，可通过后端 API `/api/settings/rsshub-url` 同步更新
-- 时间过滤：支持按 `published_at` 或 `inserted_at` 且提供 1d/7d/30d/90d/180d/365d/all 预设范围
-- OPML：从左侧工具区导入或导出 `.opml/.xml`
-- 布局：拖拽分隔条调整侧栏/详情比例，内置深/浅色主题记忆
-
-## 🔌 API（选读）
-
-- 订阅：`GET/POST/PATCH/DELETE /api/feeds`，`POST /api/feeds/{id}/refresh`
-- 文章：`GET /api/entries`，`PATCH /api/entries/{id}`；收藏相关接口见 `backend/app/api/routes/entries.py`
-- OPML：`GET /api/opml/export`，`POST /api/opml/import`
-- AI：`POST /api/ai/summary`，`POST /api/ai/translate`，`POST /api/ai/translate-title`
-- 设置：`GET/PATCH /api/settings`，AI 配置见 `backend/app/api/routes/ai.py`
-
-## 🔒 安全与隐私
-
-- 本地 `.env` 保存 API Key，不会提交到仓库（已在 `.gitignore`）
-- 数据库存放于本地 `backend/data/`，摘要与翻译结果会缓存以减少开销
-- 可使用 `./tools/scan-secrets.sh` 扫描潜在敏感信息后再提交
-
-## 🛡️ 知识产权与溯源
-
-- `build_signature.json`：记录作者 `xiongxiangyi <1666526339@qq.com>`、生成时间、commit 与 SHA-256 指纹，请在重新发布或自动化构建时同步更新。
-- 关键视觉素材（如 `images/banner_sharp_aurora.png`）内嵌 `Aurora-Author` / `Aurora-Provenance` PNG 文本块作为数字水印，用于证明原创性，请勿移除。
-
-## 🗂️ 项目结构
-
-```
-RSSpage/
-├─ backend/
-│  ├─ app/
-│  │  ├─ api/routes/           # FastAPI 路由
-│  │  ├─ core/                  # 配置
-│  │  ├─ db/                    # SQLModel 与迁移脚本
-│  │  ├─ services/              # 抓取、AI、RSSHub 管理
-│  │  └─ schemas/               # Pydantic 模型
-│  ├─ scripts/                  # dev server / 迁移
-│  └─ data/                     # SQLite 数据
-└─ rss-desktop/
-   ├─ src/                      # Vue 应用
-   └─ electron/                 # Electron 主进程
+# AI 配置
+GLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4/
+GLM_MODEL=glm-4-flash
+GLM_API_KEY=your_api_key_here
 ```
 
-## 📚 相关文档
+### 数据存储目录
+- **macOS**：`~/Library/Application Support/Aurora RSS Reader/rss.sqlite`
+- **Windows**：`%APPDATA%/Aurora RSS Reader/rss.sqlite`
+- **Linux**：`~/.config/aurora-rss-reader/rss.sqlite`
+- 可通过设置环境变量 `AURORA_DATA_DIR` 或在 `backend/.env` 中指定 `SQLITE_PATH` 来覆盖默认位置，方便在多设备或自定义路径间迁移数据。
 
-- 后端说明：`backend/README.md`
+## 构建发布
 
-## 🙏 致谢
+```bash
+# 构建安装包
+chmod +x build-release-app.sh
+./build-release-app.sh
+```
 
-- FastAPI、Vue 3、Electron、SQLModel、httpx、APScheduler
-- OpenAI 兼容模型服务（例如 GLM-4 系列 / open.bigmodel.cn）
+生成的文件：
+- macOS: `Aurora RSS Reader-Mac-0.1.0-{x64,arm64}.dmg`
+- Windows: `Aurora RSS Reader-Setup-0.1.0.exe`
+- Linux: `aurora-rss-reader-0.1.0.AppImage`
 
-如需英文版 README 或将截图改为更轻量的拼图布局，请告诉我。
+详细构建说明请参考 [构建文档](docs/development/build.md)。
+
+## 技术栈
+
+- **前端**：Vue 3 + Vite + Pinia + TypeScript
+- **后端**：FastAPI + SQLModel + SQLite
+- **桌面应用**：Electron
+- **构建工具**：PyInstaller + electron-builder
+
+## 项目结构
+
+```
+aurora-rss-reader/
+├── rss-desktop/          # 前端代码
+│   ├── src/             # Vue 源码
+│   └── electron/        # Electron 主进程
+├── backend/             # 后端服务
+│   ├── app/            # FastAPI 应用
+│   └── .venv/          # Python 虚拟环境
+├── images/              # 图片资源
+└── start.sh            # 启动脚本
+```
+
+## 📋 更新日志
+
+### v0.1.0 (当前版本)
+#### 新增功能
+- ✨ 多布局模式支持（三栏式、一栏式）
+- ✨ AI 翻译和摘要功能集成
+- ✨ 多语言界面支持（中文、英文、日语、韩语）
+- ✨ RSS 订阅分组管理
+- ✨ 文章收藏和时间过滤
+- ✨ 全文搜索功能
+- ✨ OPML 导入导出
+
+#### 优化改进
+- 🐛 修复 macOS 窗口生命周期管理问题
+- 🎨 优化界面布局和用户体验
+- 🔄 改进时区处理，统一时间显示
+- ⚡ 增强应用启动和窗口恢复性能
+
+## 📚 文档
+
+- **[完整文档](docs/README.md)** - 所有文档的入口
+- **[RSSHub 配置](docs/guides/RSSHUB_CONFIG_GUIDE.md)** - 自定义 RSSHub 实例
+- **[RSSHub 故障排除](docs/guides/RSSHUB_TROUBLESHOOTING.md)** - 连接问题排查
+- **[开发指南](docs/development/CONTRIBUTING.md)** - 贡献代码和开发设置
+- **[后端文档](docs/development/backend.md)** - 后端架构和 API
+- **[构建文档](docs/development/build.md)** - 构建和部署说明
+- **[更新日志](docs/CHANGELOG.md)** - 详细版本更新记录
+
+## ❓ 常见问题
+
+### macOS 相关
+**Q: macOS 上关闭窗口后，为什么从 dock 栏点击会报错？**
+A: 这个问题已在 v0.1.0 版本中修复。如果仍有问题，请确保使用最新版本。
+
+**Q: 如何在 macOS 上完全退出应用？**
+A: 使用 `Cmd + Q` 快捷键或右键点击 dock 图标选择退出。
+
+### 配置相关
+**Q: 如何配置 AI 服务？**
+A: 编辑 `backend/.env` 文件，添加相应的 API 密钥。详细配置请参考 [配置文档](docs/guides/RSSHUB_CONFIG_GUIDE.md)。
+
+**Q: 数据存储在哪里？**
+A: 数据默认存储在系统应用数据目录：
+- macOS: `~/Library/Application Support/Aurora RSS Reader/rss.sqlite`
+- Windows: `%APPDATA%/Aurora RSS Reader/rss.sqlite`
+- Linux: `~/.config/aurora-rss-reader/rss.sqlite`
+
+### 性能相关
+**Q: 应用启动慢怎么办？**
+A: 检查后端服务是否正常启动，可以查看终端输出的启动日志。
+
+## 支持
+
+- **问题反馈**：[GitHub Issues](https://github.com/xiongsircool/aurora-rss-reader/issues)
+- **功能建议**：[GitHub Discussions](https://github.com/xiongsircool/aurora-rss-reader/discussions)
+- **邮件联系**：1666526339@qq.com
+
+## 许可证
+
+本项目使用 [GNU General Public License v3.0](LICENSE)，这是一个 copyleft 开源许可证，要求衍生作品也必须开源。
+
+---
+
+## 🎯 未来规划
+
+### 近期计划 (v0.2)
+- [ ] **移动端支持** - 开发iOS和Android平台的移动应用
+- [ ] **AI日报功能** - 智能生成每日热点新闻摘要和个性化推荐
+- [ ] **播客支持** - 支持音频播客订阅和播放功能
+- [ ] **阅读统计** - 个人阅读习惯分析和数据可视化
+
+### 中期计划 (v0.3)
+- [ ] **数据同步** - 跨设备数据同步和云备份
+- [ ] **插件系统** - 支持第三方插件扩展功能
+
+---
+
+觉得有用就给个 ⭐ 吧！

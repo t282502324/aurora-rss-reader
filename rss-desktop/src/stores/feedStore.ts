@@ -157,6 +157,8 @@ export const useFeedStore = defineStore('feed', () => {
       if (index !== -1) {
         feeds.value[index] = data
       }
+      // 统一刷新订阅列表，确保未读统计与当前筛选条件一致
+      await fetchFeeds()
     } catch (error) {
       console.error(error)
       errorMessage.value = '更新订阅失败'
