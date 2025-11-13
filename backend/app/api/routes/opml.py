@@ -5,10 +5,12 @@ from datetime import datetime, timezone
 from io import StringIO
 
 from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
+import asyncio
 from sqlmodel import Session, select
 
 from app.db.deps import get_session
 from app.db.models import Feed
+from app.services.fetcher import refresh_feed
 
 router = APIRouter(prefix="/opml", tags=["opml"])
 
@@ -97,6 +99,7 @@ async def import_opml(
     imported = 0
     skipped = 0
     errors: list[str] = []
+    created_feed_ids: list[str] = []
     
     def process_outline(outline: ET.Element, parent_title: str | None = None) -> None:
         nonlocal imported, skipped
@@ -123,6 +126,8 @@ async def import_opml(
                 )
                 session.add(feed)
                 imported += 1
+                # 记录新建订阅的ID，提交后批量安排刷新
+                created_feed_ids.append(feed.id)
             except Exception as e:
                 errors.append(f"Error adding feed {xml_url}: {str(e)}")
         
@@ -143,9 +148,18 @@ async def import_opml(
                 errors.append(f"Error processing outline: {str(e)}")
     
     session.commit()
+
+    # 提交后批量安排异步刷新，尽快获取条目
+    for feed_id in created_feed_ids:
+        try:
+            asyncio.create_task(refresh_feed(feed_id))
+        except Exception:
+            # 在极少数情况下事件循环不可用时忽略调度错误
+            pass
     
     return {
         "imported": imported,
         "skipped": skipped,
         "errors": errors,
+        "scheduled": len(created_feed_ids),
     }

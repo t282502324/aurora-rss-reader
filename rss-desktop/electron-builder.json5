@@ -4,6 +4,7 @@
   "appId": "com.aurora.rssreader",
   "asar": true,
   "productName": "Aurora RSS Reader",
+  "executableName": "AuroraRSSReader",
   "directories": {
     "output": "release/${version}"
   },
@@ -26,7 +27,7 @@
         "arch": ["x64", "arm64"]
       }
     ],
-    "artifactName": "${productName}-Mac-${version}-${arch}.${ext}",
+    "artifactName": "AuroraRSSReader-Mac-${version}-${arch}.${ext}",
     "category": "public.app-category.news",
     "hardenedRuntime": true,
     "gatekeeperAssess": false,
@@ -44,7 +45,7 @@
         "arch": ["x64"]
       }
     ],
-    "artifactName": "${productName}-Windows-${version}-${arch}-${target}.${ext}"
+    "artifactName": "AuroraRSSReader-Windows-${version}-${arch}-${target}.${ext}"
   },
   "nsis": {
     "oneClick": false,
@@ -55,7 +56,7 @@
     "createStartMenuShortcut": true
   },
   "portable": {
-    "artifactName": "${productName}-Windows-${version}-${arch}-Portable.${ext}"
+    "artifactName": "AuroraRSSReader-Windows-${version}-${arch}-Portable.${ext}"
   },
   "linux": {
     "target": [
@@ -68,7 +69,7 @@
         "arch": ["x64"]
       }
     ],
-    "artifactName": "${productName}-Linux-${version}-${arch}.${ext}",
+    "artifactName": "AuroraRSSReader-Linux-${version}-${arch}.${ext}",
     "category": "Network"
   }
 }

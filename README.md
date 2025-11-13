@@ -155,6 +155,12 @@ GLM_MODEL=glm-4-flash
 GLM_API_KEY=your_api_key_here
 ```
 
+### 数据存储目录
+- **macOS**：`~/Library/Application Support/Aurora RSS Reader/rss.sqlite`
+- **Windows**：`%APPDATA%/Aurora RSS Reader/rss.sqlite`
+- **Linux**：`~/.config/aurora-rss-reader/rss.sqlite`
+- 可通过设置环境变量 `AURORA_DATA_DIR` 或在 `backend/.env` 中指定 `SQLITE_PATH` 来覆盖默认位置，方便在多设备或自定义路径间迁移数据。
+
 ## 构建发布
 
 ```bash

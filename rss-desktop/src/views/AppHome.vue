@@ -550,6 +550,11 @@ onMounted(async () => {
     dateRange: initialDateRange,
     timeField: initialTimeField
   })
+
+  // 启动后台自动同步（固定短周期），并在聚焦/可见性变更时同步
+  startBackgroundSync()
+  window.addEventListener('focus', handleWindowFocus)
+  document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
 // 组件卸载时清理事件监听器
@@ -557,6 +562,12 @@ onUnmounted(() => {
   window.removeEventListener('mousemove', handleMouseMove)
   window.removeEventListener('mouseup', handleMouseUp)
   window.removeEventListener('resize', handleWindowResize)
+  if (backgroundSyncTimer.value) {
+    window.clearInterval(backgroundSyncTimer.value)
+    backgroundSyncTimer.value = null
+  }
+  window.removeEventListener('focus', handleWindowFocus)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 
 watch(
@@ -709,6 +720,14 @@ watch(dateRangeFilter, () => {
   debouncedApplyFilters({ refreshFeeds: true })
 })
 
+// 监听后端时间字段切换，同步左侧未读统计
+watch(
+  () => settingsStore.settings.time_field,
+  () => {
+    debouncedApplyFilters({ refreshFeeds: true })
+  }
+)
+
 function formatDate(date?: string | null) {
   if (!date) return '未知时间'
   return dayjs(date).fromNow()
@@ -725,6 +744,72 @@ function getTimeRangeText(dateRange: string): string {
     'all': '全部时间'
   }
   return rangeMap[dateRange] || dateRange
+}
+
+function formatLastChecked(date?: string | null) {
+  if (!date) return '未刷新'
+  return dayjs(date).fromNow()
+}
+
+function getFeedRefreshStatus(feed: Feed): 'ok' | 'due' | 'never' {
+  const interval = settingsStore.settings.fetch_interval_minutes
+  if (!feed.last_checked_at) return 'never'
+  if (!interval || interval >= 1440) return 'ok'
+  const minutes = dayjs().diff(dayjs(feed.last_checked_at), 'minute')
+  return minutes > interval ? 'due' : 'ok'
+}
+
+function getFeedRefreshTooltip(feed: Feed): string {
+  const interval = settingsStore.settings.fetch_interval_minutes
+  if (!feed.last_checked_at) return `尚未刷新\n抓取间隔: ${interval} 分钟`
+  const minutes = dayjs().diff(dayjs(feed.last_checked_at), 'minute')
+  const status = getFeedRefreshStatus(feed)
+  const statusText = status === 'ok' ? '正常' : status === 'due' ? `已超时 ${minutes - interval} 分钟` : '未刷新'
+  return `最后刷新: ${dayjs(feed.last_checked_at).fromNow()}\n抓取间隔: ${interval} 分钟\n状态: ${statusText}`
+}
+
+// 后台自动同步（短周期，仅同步左侧统计；避免打扰列表请求）
+const backgroundSyncTimer = ref<number | null>(null)
+
+function syncFeedsCounts() {
+  const filterDateRange = settingsStore.settings.enable_date_filter ? dateRangeFilter.value : undefined
+  const filterTimeField = settingsStore.settings.time_field
+  if (store.loadingFeeds) return Promise.resolve()
+  return store.fetchFeeds({ dateRange: filterDateRange, timeField: filterTimeField })
+}
+
+function startBackgroundSync() {
+  if (backgroundSyncTimer.value) {
+    window.clearInterval(backgroundSyncTimer.value)
+    backgroundSyncTimer.value = null
+  }
+  // 页面可见时每3s同步一次，不可见时每6s同步（轻量，只刷新左侧计数）
+  const intervalMs = document.hidden ? 6000 : 3000
+  backgroundSyncTimer.value = window.setInterval(() => {
+    if (showFavoritesOnly.value) {
+      // 收藏视图：只需刷新收藏统计与列表（轻量）
+      loadFavoritesData()
+    } else {
+      syncFeedsCounts()
+    }
+  }, intervalMs)
+}
+
+function handleWindowFocus() {
+  if (showFavoritesOnly.value) {
+    loadFavoritesData()
+  } else {
+    // 聚焦时做一次全量同步（含当前列表）
+    applyFilters({ refreshFeeds: true })
+  }
+}
+
+function handleVisibilityChange() {
+  // 可见性变化时重置同步节奏，并在恢复可见时立即同步一次
+  startBackgroundSync()
+  if (!document.hidden) {
+    handleWindowFocus()
+  }
 }
 
 async function handleAddFeed() {
@@ -1204,6 +1289,12 @@ async function handleImportOpml(event: Event) {
                   <span class="feed-item__url" v-if="editingFeedId !== feed.id">
                     {{ feed.url }}
                   </span>
+                  <div class="feed-item__meta" v-if="editingFeedId !== feed.id">
+                    <span class="last-checked" :title="getFeedRefreshTooltip(feed)">
+                      <span class="status-dot" :class="getFeedRefreshStatus(feed)"></span>
+                      {{ formatLastChecked(feed.last_checked_at) }}
+                    </span>
+                  </div>
                   <div v-else class="feed-item__edit">
                     <input
                       v-model="editingGroupName"
@@ -2013,6 +2104,27 @@ async function handleImportOpml(event: Event) {
   gap: 4px;
   overflow: hidden;
 }
+
+.feed-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 6px;
+  background: var(--border-color);
+}
+
+.status-dot.ok { background: #2ec4b6; }
+.status-dot.due { background: #ff6b6b; }
+.status-dot.never { background: #9aa0a6; }
 
 .feed-item__title {
   font-weight: 600;

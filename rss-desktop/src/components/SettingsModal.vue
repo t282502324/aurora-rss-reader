@@ -179,13 +179,12 @@ function copySummaryToTranslation() {
   serviceTestResult.value.translation = null
 }
 
+import api from '../api/client'
+
 async function fetchRSSHubUrl() {
   try {
-    const response = await fetch('/api/settings/rsshub-url')
-    if (response.ok) {
-      const data = await response.json()
-      rsshubUrl.value = data.rsshub_url
-    }
+    const { data } = await api.get('/settings/rsshub-url')
+    rsshubUrl.value = data.rsshub_url
   } catch (error) {
     console.error('获取RSSHub URL失败:', error)
   }
@@ -204,15 +203,8 @@ async function testRSSHubConnection() {
     // 先保存RSSHub URL
     await saveRSSHubUrl()
 
-    // 通过后端API测试RSSHub连通性
-    const response = await fetch('/api/settings/test-rsshub-quick', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-
-    const result = await response.json()
+    // 通过后端API测试RSSHub连通性（使用统一的 axios 客户端，兼容打包环境）
+    const { data: result } = await api.post('/settings/test-rsshub-quick')
 
     if (result.success) {
       rsshubTestResult.value = {
@@ -254,27 +246,12 @@ async function saveRSSHubUrl() {
   }
 
   try {
-    const response = await fetch('/api/settings/rsshub-url', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        rsshub_url: rsshubUrl.value
-      })
+    await api.post('/settings/rsshub-url', {
+      rsshub_url: rsshubUrl.value
     })
-
-    if (response.ok) {
-      rsshubTestResult.value = {
-        success: true,
-        message: 'RSSHub URL保存成功！'
-      }
-    } else {
-      const errorData = await response.json()
-      rsshubTestResult.value = {
-        success: false,
-        message: `保存失败: ${errorData.detail || '未知错误'}`
-      }
+    rsshubTestResult.value = {
+      success: true,
+      message: 'RSSHub URL保存成功！'
     }
   } catch (error) {
     rsshubTestResult.value = {

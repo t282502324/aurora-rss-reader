@@ -4,6 +4,8 @@ import asyncio
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
+import asyncio
 from sqlalchemy import func
 from sqlmodel import Session, select
 
@@ -106,6 +108,60 @@ async def add_feed(payload: FeedCreate, session: Session = Depends(get_session))
 async def manual_refresh(feed_id: str) -> dict[str, str]:
     asyncio.create_task(refresh_feed(feed_id))
     return {"status": "scheduled"}
+
+
+class RefreshBatchRequest(BaseModel):
+    feed_ids: list[str]
+
+
+@router.post("/refresh-batch", status_code=202)
+async def manual_refresh_batch(payload: RefreshBatchRequest) -> dict:
+    """Batch schedule refresh for a list of feed IDs.
+
+    This ignores any time-based interval — manual trigger always schedules now.
+    """
+    scheduled = 0
+    for fid in payload.feed_ids:
+        try:
+            asyncio.create_task(refresh_feed(fid))
+            scheduled += 1
+        except Exception:
+            # Ignore scheduling failure of individual items to keep endpoint robust
+            pass
+    return {"status": "scheduled", "scheduled": scheduled, "requested": len(payload.feed_ids)}
+
+
+class RefreshGroupRequest(BaseModel):
+    group_name: str
+
+
+@router.post("/refresh-group", status_code=202)
+async def manual_refresh_group(req: RefreshGroupRequest, session: Session = Depends(get_session)) -> dict:
+    """Schedule refresh for all feeds under a group."""
+    feeds = session.exec(select(Feed).where(Feed.group_name == req.group_name)).all()
+    ids = [f.id for f in feeds]
+    scheduled = 0
+    for fid in ids:
+        try:
+            asyncio.create_task(refresh_feed(fid))
+            scheduled += 1
+        except Exception:
+            pass
+    return {"status": "scheduled", "group": req.group_name, "scheduled": scheduled, "total": len(ids)}
+
+
+@router.post("/refresh-all", status_code=202)
+async def manual_refresh_all(session: Session = Depends(get_session)) -> dict:
+    """Schedule refresh for all feeds immediately."""
+    feeds = session.exec(select(Feed)).all()
+    scheduled = 0
+    for f in feeds:
+        try:
+            asyncio.create_task(refresh_feed(f.id))
+            scheduled += 1
+        except Exception:
+            pass
+    return {"status": "scheduled", "scheduled": scheduled, "total": len(feeds)}
 
 
 @router.delete("/{feed_id}", status_code=204)

@@ -28,9 +28,11 @@ let win: BrowserWindow | null
 let backendProcess: ChildProcess | null = null
 let backendReady = false
 
+const PRELOAD_PATH = resolvePreloadPath()
 const isDev = VITE_DEV_SERVER_URL !== undefined
 const projectRoot = path.join(process.env.APP_ROOT, '..')
 const backendDir = path.join(projectRoot, 'backend')
+let devtoolsOpened = false
 
 // 后端配置
 const BACKEND_HOST = '127.0.0.1'
@@ -38,6 +40,21 @@ const BACKEND_PORT = 15432
 const HEALTH_CHECK_URL = `http://${BACKEND_HOST}:${BACKEND_PORT}/health`
 const HEALTH_CHECK_TIMEOUT = 30000 // 30秒超时
 const HEALTH_CHECK_INTERVAL = 500 // 每500ms检查一次
+
+function resolvePreloadPath(): string {
+  const candidates = ['preload.mjs', 'preload.js', 'preload.cjs']
+
+  for (const name of candidates) {
+    const candidate = path.join(__dirname, name)
+    if (fs.existsSync(candidate)) {
+      return candidate
+    }
+  }
+
+  const fallback = path.join(__dirname, 'preload.js')
+  console.warn('⚠️  未找到预设的 preload 文件，回退到', fallback)
+  return fallback
+}
 
 /**
  * 健康检查：等待后端服务就绪
@@ -248,6 +265,8 @@ function stopBackend() {
  * 创建主窗口
  */
 function createWindow() {
+  if (win) return win
+
   win = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -256,7 +275,7 @@ function createWindow() {
     show: false, // 先不显示，等加载完成后再显示
     icon: path.join(process.env.VITE_PUBLIC || '', 'icons', 'app-release.png'),
     webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
+      preload: PRELOAD_PATH,
       nodeIntegration: false,
       contextIsolation: true,
     },
@@ -265,16 +284,79 @@ function createWindow() {
   // 窗口加载完成后显示
   win.once('ready-to-show', () => {
     win?.show()
-    if (isDev) {
-      win?.webContents.openDevTools()
-    }
   })
 
   win.webContents.on('did-finish-load', () => {
+    const currentURL = win?.webContents.getURL() || ''
+
+    if (isLoadingScreen(currentURL)) {
+      return
+    }
+
     win?.webContents.send('main-process-message', new Date().toLocaleString())
+
+    if (isDev && !devtoolsOpened) {
+      win?.webContents.openDevTools()
+      devtoolsOpened = true
+    }
   })
 
-  // 加载页面
+  return win
+}
+
+function isLoadingScreen(url: string) {
+  return url.startsWith('data:text/html')
+}
+
+function showStartupStatus(message: string) {
+  if (!win) return
+
+  const safeMessage = message.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  const html = /* html */ `
+    <!doctype html>
+    <html lang="zh-CN">
+      <head>
+        <meta charset="utf-8" />
+        <title>Aurora RSS Reader</title>
+        <style>
+          :root {
+            color-scheme: light dark;
+          }
+          body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+          }
+          .card {
+            text-align: center;
+          }
+          .status {
+            margin-top: 12px;
+            font-size: 16px;
+            color: #cbd5f5;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <h2>Aurora RSS Reader</h2>
+          <div class="status">${safeMessage}</div>
+        </div>
+      </body>
+    </html>
+  `
+
+  win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+}
+
+function loadRendererContent() {
+  if (!win) return
+
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
   } else {
@@ -291,34 +373,37 @@ app.whenReady().then(async () => {
   console.log(`   用户数据目录: ${app.getPath('userData')}`)
   console.log(`   资源路径: ${process.resourcesPath}`)
 
-  // 开发模式下，假设后端已由 pnpm dev 启动
+  createWindow()
+
   if (isDev) {
     console.log('⚠️  开发模式：假设后端已由 pnpm dev 启动')
     console.log('   等待后端就绪...')
+    showStartupStatus('等待开发后端服务就绪...')
 
     const backendReady = await waitForBackendReady()
 
     if (!backendReady) {
       console.error('❌ 后端未就绪，请确保运行了 pnpm dev')
       console.error('   或者单独启动后端: cd backend && source .venv/bin/activate && python -m scripts.serve')
+      showStartupStatus('后端未就绪，请检查终端中的启动命令')
       app.quit()
       return
     }
 
-    // 后端就绪，直接创建窗口
-    createWindow()
+    loadRendererContent()
   } else {
-    // 生产模式：需要启动后端
+    showStartupStatus('正在启动后端服务，请稍候...')
+
     const backendStarted = await startBackend()
 
     if (!backendStarted) {
       console.error('❌ 后端启动失败，应用无法继续')
+      showStartupStatus('后端启动失败，请查看日志或重启应用')
       app.quit()
       return
     }
 
-    // 后端就绪后创建窗口
-    createWindow()
+    loadRendererContent()
   }
 })
 
@@ -332,6 +417,11 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow()
+    if (backendReady) {
+      loadRendererContent()
+    } else {
+      showStartupStatus('正在等待后端服务...')
+    }
   }
 })
 
