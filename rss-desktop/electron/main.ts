@@ -324,6 +324,12 @@ function isLoadingScreen(url: string) {
 function showStartupStatus(message: string) {
   if (!win) return
 
+  // 确保窗口没有被销毁
+  if (win.isDestroyed && win.isDestroyed()) {
+    win = null
+    return
+  }
+
   const safeMessage = message.replace(/</g, '&lt;').replace(/>/g, '&gt;')
   const html = /* html */ `
     <!doctype html>
@@ -364,17 +370,34 @@ function showStartupStatus(message: string) {
     </html>
   `
 
-  win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+  try {
+    win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+  } catch (error) {
+    console.error('Failed to load startup status:', error)
+    // 如果加载失败，可能窗口已被销毁，重置引用
+    win = null
+  }
 }
 
 function loadRendererContent() {
   if (!win) return
-  if (win.isDestroyed && win.isDestroyed()) return
 
-  if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL)
-  } else {
-    win.loadFile(path.join(RENDERER_DIST, 'index.html'))
+  // 检查窗口是否已销毁
+  if (win.isDestroyed && win.isDestroyed()) {
+    win = null
+    return
+  }
+
+  try {
+    if (VITE_DEV_SERVER_URL) {
+      win.loadURL(VITE_DEV_SERVER_URL)
+    } else {
+      win.loadFile(path.join(RENDERER_DIST, 'index.html'))
+    }
+  } catch (error) {
+    console.error('Failed to load renderer content:', error)
+    // 如果加载失败，可能窗口已被销毁，重置引用
+    win = null
   }
 }
 
@@ -429,13 +452,26 @@ app.on('window-all-closed', () => {
 })
 
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
+  // macOS: 当用户点击 dock 图标时，如果没有窗口则创建新窗口
+  // 检查是否有任何可见的窗口（排除已销毁的窗口）
+  const visibleWindows = BrowserWindow.getAllWindows().filter(window => !window.isDestroyed())
+
+  if (visibleWindows.length === 0) {
+    // 没有可见窗口，创建新窗口
     createWindow()
     if (backendReady) {
       loadRendererContent()
     } else {
       showStartupStatus('正在等待后端服务...')
     }
+  } else {
+    // 有可见窗口，将其显示到前台
+    const mainWindow = visibleWindows[0]
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore()
+    }
+    mainWindow.show()
+    mainWindow.focus()
   }
 })
 
