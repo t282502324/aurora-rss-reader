@@ -17,9 +17,10 @@
   </a>
 </p>
 
-<p align="left">
-  <img alt="App Icon" src="rss-desktop/public/icons/app-release.png" width="72" height="72" />
-</p>
+<div align="center">
+  <img alt="Aurora RSS Reader Icon" src="images/光图标不带背景色版本.png" width="120" height="120" />
+  <img alt="Aurora RSS Reader Logo" src="images/带版本号和软件名图标.png" width="300" height="120" />
+</div>
 
 ## 简介
 
