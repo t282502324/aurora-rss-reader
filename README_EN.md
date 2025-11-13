@@ -22,8 +22,7 @@
 </p>
 
 <div align="center">
-  <img alt="Aurora RSS Reader Icon" src="images/光图标不带背景色版本.png" height="120" />
-  <img alt="Aurora RSS Reader Logo" src="images/带版本号和软件名图标.png" height="120" />
+  <img alt="Aurora RSS Reader" src="images/带版本号和软件名图标.png" height="120" />
 </div>
 
 ## Introduction
@@ -32,20 +31,20 @@ Aurora RSS Reader is a cross-platform desktop RSS reader integrated with AI tran
 
 ## Key Features
 
-### 📖 Reading Experience
+### Reading Experience
 - **Multiple Layout Modes** - Support for three-column and single-column layouts
 - **Group Management** - Organize RSS feeds by categories
 - **Full-text Search** - Quick search in titles and content
 - **Favorites Feature** - Bookmark important articles for later reading
 - **Time Filtering** - Filter articles by publication date
 
-### 🌟 Smart Features
+### Smart Features
 - **Article Summaries** - Automatically generate key points for quick understanding
 - **Multi-language Translation** - Support full-text and title translation for barrier-free reading
 - **Multi-language Interface** - Chinese, English, Japanese, Korean interface support
 - **Flexible Configuration** - Support multiple translation and summarization services
 
-### ⚙️ System Features
+### System Features
 - **Local Storage** - SQLite database, offline available
 - **OPML Import/Export** - Easy data migration
 - **Auto Refresh** - Periodically fetch latest articles
@@ -54,7 +53,7 @@ Aurora RSS Reader is a cross-platform desktop RSS reader integrated with AI tran
 
 ## Interface Preview
 
-### 🖼️ Layout Modes
+### Layout Modes
 <div align="center">
   <figure style="display:inline-block;margin:0 16px 18px;text-align:center;vertical-align:bottom;">
     <img src="images/appimages/三栏式布局.png" alt="Three-column layout" style="width:520px;border-radius:14px;box-shadow:0 6px 30px rgba(15,17,21,.18);" />
@@ -66,7 +65,7 @@ Aurora RSS Reader is a cross-platform desktop RSS reader integrated with AI tran
   </figure>
 </div>
 
-### 🌍 Multi-language Experience
+### Multi-language Experience
 <div align="center">
   <figure style="display:inline-block;margin:0 16px 18px;text-align:center;">
     <img src="images/appimages/多语言支持中文.png" alt="Chinese Interface" style="width:360px;border-radius:14px;box-shadow:0 6px 30px rgba(15,17,21,.18);" />
@@ -78,7 +77,7 @@ Aurora RSS Reader is a cross-platform desktop RSS reader integrated with AI tran
   </figure>
 </div>
 
-### ⚙️ Management Features
+### Management Features
 <div align="center">
   <figure style="display:inline-block;margin:0 16px 18px;text-align:center;">
     <img src="images/appimages/支持订阅分组.png" alt="Group Management" style="width:360px;border-radius:14px;box-shadow:0 6px 30px rgba(15,17,21,.18);" />
@@ -94,7 +93,7 @@ Aurora RSS Reader is a cross-platform desktop RSS reader integrated with AI tran
   </figure>
 </div>
 
-### 🌍 Multi-language Interface
+### Multi-language Interface
 <div align="center">
   <figure style="display:inline-block;margin:0 12px 16px;text-align:center;">
     <img src="images/appimages/多语言支持中文.png" alt="Chinese" style="width:200px;border-radius:12px;box-shadow:0 4px 20px rgba(15,17,21,.1);" />

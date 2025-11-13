@@ -22,8 +22,7 @@
 </p>
 
 <div align="center">
-  <img alt="Aurora RSS Reader Icon" src="images/光图标不带背景色版本.png" height="120" />
-  <img alt="Aurora RSS Reader Logo" src="images/带版本号和软件名图标.png" height="120" />
+  <img alt="Aurora RSS Reader" src="images/带版本号和软件名图标.png" height="120" />
 </div>
 
 ## 简介
@@ -32,20 +31,20 @@ Aurora RSS Reader 是一个跨平台桌面 RSS 阅读器，集成了 AI 翻译�
 
 ## 功能特色
 
-### 📖 阅读体验
+### 阅读体验
 - **多种布局模式** - 支持三栏式和一栏式布局
 - **分组管理** - 将 RSS 源按分类整理
 - **全文搜索** - 在标题和内容中快速查找
 - **收藏功能** - 收藏重要文章便于后续阅读
 - **时间过滤** - 按发布时间筛选文章
 
-### 🌟 智能功能
+### 智能功能
 - **文章摘要** - 自动生成文章要点，快速了解内容
 - **多语言翻译** - 支持全文和标题翻译，阅读无障碍
 - **多语言界面** - 中文、英文、日语、韩语界面支持
 - **灵活配置** - 支持多种翻译和摘要服务
 
-### ⚙️ 系统功能
+### 系统功能
 - **本地存储** - SQLite 数据库，离线可用
 - **OPML 导入导出** - 方便数据迁移
 - **自动刷新** - 定时获取最新文章
@@ -54,7 +53,7 @@ Aurora RSS Reader 是一个跨平台桌面 RSS 阅读器，集成了 AI 翻译�
 
 ## 界面预览
 
-### 🖼️ 布局模式
+### 布局模式
 <div align="center">
   <figure style="display:inline-block;margin:0 16px 18px;text-align:center;vertical-align:bottom;">
     <img src="images/appimages/三栏式布局.png" alt="三栏式布局" style="width:520px;border-radius:14px;box-shadow:0 6px 30px rgba(15,17,21,.18);" />
@@ -66,7 +65,7 @@ Aurora RSS Reader 是一个跨平台桌面 RSS 阅读器，集成了 AI 翻译�
   </figure>
 </div>
 
-### 🌍 多语言体验
+### 多语言体验
 <div align="center">
   <figure style="display:inline-block;margin:0 16px 18px;text-align:center;">
     <img src="images/appimages/多语言支持中文.png" alt="中文界面" style="width:360px;border-radius:14px;box-shadow:0 6px 30px rgba(15,17,21,.18);" />
@@ -78,7 +77,7 @@ Aurora RSS Reader 是一个跨平台桌面 RSS 阅读器，集成了 AI 翻译�
   </figure>
 </div>
 
-### ⚙️ 管理功能
+### 管理功能
 <div align="center">
   <figure style="display:inline-block;margin:0 16px 18px;text-align:center;">
     <img src="images/appimages/支持订阅分组.png" alt="分组管理" style="width:360px;border-radius:14px;box-shadow:0 6px 30px rgba(15,17,21,.18);" />
@@ -94,7 +93,7 @@ Aurora RSS Reader 是一个跨平台桌面 RSS 阅读器，集成了 AI 翻译�
   </figure>
 </div>
 
-### 🌍 多语言界面
+### 多语言界面
 <div align="center">
   <figure style="display:inline-block;margin:0 12px 16px;text-align:center;">
     <img src="images/appimages/多语言支持中文.png" alt="中文" style="width:200px;border-radius:12px;box-shadow:0 4px 20px rgba(15,17,21,.1);" />
