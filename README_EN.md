@@ -56,11 +56,11 @@ Aurora RSS Reader is a cross-platform desktop RSS reader integrated with AI tran
 
 ### 🖼️ Layout Modes
 <div align="center">
-  <figure style="display:inline-block;margin:0 16px 18px;text-align:center;vertical-align:top;">
+  <figure style="display:inline-block;margin:0 16px 18px;text-align:center;vertical-align:bottom;">
     <img src="images/appimages/三栏式布局.png" alt="Three-column layout" style="width:520px;border-radius:14px;box-shadow:0 6px 30px rgba(15,17,21,.18);" />
     <figcaption>Three-column layout</figcaption>
   </figure>
-  <figure style="display:inline-block;margin:0 16px 18px;text-align:center;vertical-align:top;">
+  <figure style="display:inline-block;margin:0 16px 18px;text-align:center;vertical-align:bottom;">
     <img src="images/appimages/一拦式布局.png" alt="Single-column layout" style="width:240px;border-radius:14px;box-shadow:0 6px 30px rgba(15,17,21,.18);" />
     <figcaption>Single-column layout</figcaption>
   </figure>

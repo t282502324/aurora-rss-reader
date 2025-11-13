@@ -56,11 +56,11 @@ Aurora RSS Reader 是一个跨平台桌面 RSS 阅读器，集成了 AI 翻译�
 
 ### 🖼️ 布局模式
 <div align="center">
-  <figure style="display:inline-block;margin:0 16px 18px;text-align:center;vertical-align:top;">
+  <figure style="display:inline-block;margin:0 16px 18px;text-align:center;vertical-align:bottom;">
     <img src="images/appimages/三栏式布局.png" alt="三栏式布局" style="width:520px;border-radius:14px;box-shadow:0 6px 30px rgba(15,17,21,.18);" />
     <figcaption>三栏式布局</figcaption>
   </figure>
-  <figure style="display:inline-block;margin:0 16px 18px;text-align:center;vertical-align:top;">
+  <figure style="display:inline-block;margin:0 16px 18px;text-align:center;vertical-align:bottom;">
     <img src="images/appimages/一拦式布局.png" alt="一栏式布局" style="width:240px;border-radius:14px;box-shadow:0 6px 30px rgba(15,17,21,.18);" />
     <figcaption>一栏式布局</figcaption>
   </figure>
