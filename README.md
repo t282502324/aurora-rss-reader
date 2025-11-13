@@ -13,7 +13,7 @@
     <img alt="GitHub issues" src="https://img.shields.io/github/issues/xiongsircool/aurora-rss-reader">
   </a>
   <a href="https://github.com/xiongsircool/aurora-rss-reader/blob/main/LICENSE">
-    <img alt="License" src="https://img.shields.io/github/license/xiongsircool/aurora-rss-reader">
+    <img alt="License: GPL v3" src="https://img.shields.io/badge/License-GPLv3-blue.svg">
   </a>
 </p>
 
@@ -205,7 +205,7 @@ aurora-rss-reader/
 
 ## 许可证
 
-本项目使用 [Aurora RSS Reader License (ARSL)](LICENSE)，基于 MIT 许可证。
+本项目使用 [GNU General Public License v3.0](LICENSE)，这是一个 copyleft 开源许可证，要求衍生作品也必须开源。
 
 ---
 
