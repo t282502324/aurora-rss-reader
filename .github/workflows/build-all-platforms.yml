@@ -181,7 +181,31 @@ jobs:
         id: release_notes
         run: |
           VERSION=$(echo ${{ github.ref_name }} | sed 's/v//')
-          cat > release_notes.md << 'EOF'
+          if [ "${VERSION}" = "0.1.2" ]; then
+            cat > release_notes.md << 'EOF'
+          ## 🎉 Aurora RSS Reader v0.1.2 - 重要Bug修复版本
+
+          ### 🐛 Bug修复
+          - 修复时间过滤问题 - "最近一天"过滤功能完全恢复
+          - 修复分类显示Bug - 点击分类后订阅列表正常显示
+          - 修复时区计算错误 - 解决RSS时间解析偏差问题
+
+          ### ⚡ 功能增强
+          - RSS解析引擎增强 - 解析成功率提升到83.3%+
+          - 学术期刊支持 - 支持Nature、ScienceDirect等格式
+          - RSSHub镜像支持 - 提高网络访问稳定性
+
+          ### 📦 下载
+          - **Windows**: `.exe` 安装包或便携版
+          - **macOS**: `.dmg` 安装包 (Intel/Apple Silicon)
+          - **Linux**: `.AppImage` 或 `.deb` 包
+
+          ---
+
+          📱 [项目主页](https://github.com/xiongsircool/aurora-rss-reader)
+          EOF
+          else
+            cat > release_notes.md << 'EOF'
           ## 🌟 Aurora RSS Reader v${VERSION}
 
           ### ✨ 新功能
@@ -205,6 +229,7 @@ jobs:
 
           📱 [项目主页](https://github.com/xiongsircool/aurora-rss-reader)
           EOF
+          fi
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
