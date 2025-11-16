@@ -15,6 +15,7 @@ from app.services.rsshub_manager import rsshub_manager
 from app.core.config import settings, APP_DATA_DIR
 from app.db.session import init_db
 from app.services.fetcher import refresh_all_feeds
+from app.services.user_settings_service import ensure_user_settings_schema
 
 # 允许所有localhost端口访问
 import re
@@ -63,6 +64,7 @@ def build_allowed_origins() -> list[str]:
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_db()
+    ensure_user_settings_schema()
     # 初始化RSSHub配置
     await rsshub_manager.initialize_default_mirrors()
 

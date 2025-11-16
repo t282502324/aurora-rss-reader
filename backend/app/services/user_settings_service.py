@@ -15,12 +15,22 @@ def ensure_user_settings_schema():
     if _schema_checked:
         return
 
+    required_columns = {
+        "show_entry_summary": "ALTER TABLE user_settings ADD COLUMN show_entry_summary BOOLEAN NOT NULL DEFAULT 1",
+        "enable_date_filter": "ALTER TABLE user_settings ADD COLUMN enable_date_filter BOOLEAN NOT NULL DEFAULT 1",
+        "default_date_range": "ALTER TABLE user_settings ADD COLUMN default_date_range TEXT NOT NULL DEFAULT '30d'",
+        "time_field": "ALTER TABLE user_settings ADD COLUMN time_field TEXT NOT NULL DEFAULT 'inserted_at'",
+    }
+
     with engine.connect() as connection:
         columns = {row[1] for row in connection.execute(text("PRAGMA table_info('user_settings')"))}
-        if "show_entry_summary" not in columns:
-            connection.execute(
-                text("ALTER TABLE user_settings ADD COLUMN show_entry_summary BOOLEAN NOT NULL DEFAULT 1")
-            )
+        new_columns_added = False
+        for column_name, statement in required_columns.items():
+            if column_name not in columns:
+                connection.execute(text(statement))
+                new_columns_added = True
+
+        if new_columns_added:
             connection.commit()
 
     _schema_checked = True
