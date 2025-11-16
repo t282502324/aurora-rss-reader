@@ -20,7 +20,7 @@ class UserSettings(SQLModel, table=True):
 
     # 时间过滤相关设置
     enable_date_filter: bool = Field(default=True, description="是否启用时间过滤")
-    default_date_range: str = Field(default="30d", description="默认时间范围: '1d', '7d', '30d', '90d', '180d', '365d', 'all'")
+    default_date_range: str = Field(default="30d", description="默认时间范围: '1d', '2d', '3d', '7d', '30d', '90d', '180d', '365d', 'all'")
     time_field: str = Field(default="inserted_at", description="时间字段: 'published_at' 或 'inserted_at'")
 
     created_at: datetime = Field(default_factory=datetime.utcnow)

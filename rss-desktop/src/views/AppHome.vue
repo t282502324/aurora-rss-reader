@@ -840,6 +840,8 @@ function formatDate(date?: string | null) {
 function getTimeRangeText(dateRange: string): string {
   const rangeMap: Record<string, string> = {
     '1d': '最近1天',
+    '2d': '最近2天',
+    '3d': '最近3天',
     '7d': '最近1周',
     '30d': '最近1个月',
     '90d': '最近3个月',
@@ -1609,6 +1611,8 @@ async function handleImportOpml(event: Event) {
               :disabled="filterLoading"
             >
               <option value="1d">{{ t('time.last1Day') }}</option>
+              <option value="2d">{{ t('time.last2Days') }}</option>
+              <option value="3d">{{ t('time.last3Days') }}</option>
               <option value="7d">{{ t('time.last1Week') }}</option>
               <option value="30d">{{ t('time.last1Month') }}</option>
               <option value="90d">{{ t('time.last3Months') }}</option>

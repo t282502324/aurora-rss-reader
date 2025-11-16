@@ -43,7 +43,7 @@ def _calculate_cutoff(date_range: str | None) -> datetime | None:
 @router.get("", response_model=list[FeedRead])
 async def list_feeds(
     session: Session = Depends(get_session),
-    date_range: str | None = Query(default=None, description="时间范围: '1d', '7d', '30d', '90d', '180d', '365d', 'all'"),
+    date_range: str | None = Query(default=None, description="时间范围: '1d', '2d', '3d', '7d', '30d', '90d', '180d', '365d', 'all'"),
     time_field: str = Query(default="inserted_at", description="时间字段: 'published_at' 或 'inserted_at'"),
 ) -> list[FeedRead]:
     feeds = session.exec(select(Feed).order_by(Feed.created_at.desc())).all()

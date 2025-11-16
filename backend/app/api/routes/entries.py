@@ -29,7 +29,7 @@ async def list_entries(
     unread_only: bool = Query(default=False),
     limit: int | None = Query(default=None, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
-    date_range: str | None = Query(default=None, description="时间范围: '1d', '7d', '30d', '90d', '180d', '365d'"),
+    date_range: str | None = Query(default=None, description="时间范围: '1d', '2d', '3d', '7d', '30d', '90d', '180d', '365d'"),
     time_field: str = Query(default="inserted_at", description="时间字段: 'published_at' 或 'inserted_at'"),
 ) -> list[EntryRead]:
     if limit is None:

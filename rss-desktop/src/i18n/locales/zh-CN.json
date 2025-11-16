@@ -189,6 +189,8 @@
     "tomorrow": "明天",
     "unknown": "未知时间",
     "last1Day": "最近1天",
+    "last2Days": "最近2天",
+    "last3Days": "最近3天",
     "last1Week": "最近1周",
     "last1Month": "最近1个月",
     "last3Months": "最近3个月",
@@ -358,6 +360,8 @@
   },
   "filters": {
     "last1Day": "最近1天",
+    "last2Days": "最近2天",
+    "last3Days": "最近3天",
     "last1Week": "最近1周",
     "last1Month": "最近1个月",
     "last3Months": "最近3个月",

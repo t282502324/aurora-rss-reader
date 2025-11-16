@@ -189,6 +189,8 @@
     "tomorrow": "Tomorrow",
     "unknown": "Unknown Time",
     "last1Day": "Last 1 day",
+    "last2Days": "Last 2 days",
+    "last3Days": "Last 3 days",
     "last1Week": "Last 1 week",
     "last1Month": "Last 1 month",
     "last3Months": "Last 3 months",
@@ -358,6 +360,8 @@
   },
   "filters": {
     "last1Day": "Last 1 day",
+    "last2Days": "Last 2 days",
+    "last3Days": "Last 3 days",
     "last1Week": "Last 1 week",
     "last1Month": "Last 1 month",
     "last3Months": "Last 3 months",

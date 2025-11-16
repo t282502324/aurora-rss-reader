@@ -189,6 +189,8 @@
     "tomorrow": "明日",
     "unknown": "不明な時間",
     "last1Day": "過去1日",
+    "last2Days": "過去2日",
+    "last3Days": "過去3日",
     "last1Week": "過去1週間",
     "last1Month": "過去1ヶ月",
     "last3Months": "過去3ヶ月",
@@ -358,6 +360,8 @@
   },
   "filters": {
     "last1Day": "過去1日",
+    "last2Days": "過去2日",
+    "last3Days": "過去3日",
     "last1Week": "過去1週間",
     "last1Month": "過去1ヶ月",
     "last3Months": "過去3ヶ月",

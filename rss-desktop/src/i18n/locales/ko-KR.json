@@ -193,6 +193,8 @@
     "tomorrow": "내일",
     "unknown": "알 수 없는 시간",
     "last1Day": "최근 1일",
+    "last2Days": "최근 2일",
+    "last3Days": "최근 3일",
     "last1Week": "최근 1주",
     "last1Month": "최근 1개월",
     "last3Months": "최근 3개월",
@@ -341,6 +343,8 @@
   },
   "filters": {
     "last1Day": "최근 1일",
+    "last2Days": "최근 2일",
+    "last3Days": "최근 3일",
     "last1Week": "최근 1주",
     "last1Month": "최근 1개월",
     "last3Months": "최근 3개월",

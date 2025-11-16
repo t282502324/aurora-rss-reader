@@ -742,6 +742,8 @@ function handleLanguageChange(newLanguage: string) {
               <label>{{ t('settings.defaultTimeRange') }}</label>
               <select v-model="defaultDateRange" class="form-select">
                 <option value="1d">{{ t('time.last1Day') }}</option>
+                <option value="2d">{{ t('time.last2Days') }}</option>
+                <option value="3d">{{ t('time.last3Days') }}</option>
                 <option value="7d">{{ t('time.last1Week') }}</option>
                 <option value="30d">{{ t('time.last1Month') }}</option>
                 <option value="90d">{{ t('time.last3Months') }}</option>
