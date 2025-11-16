@@ -5,6 +5,7 @@ import { clampAutoTitleTranslationLimit, getDefaultAutoTitleTranslationLimit } f
 
 export interface AppSettings {
   fetch_interval_minutes: number
+  items_per_page: number
   // 时间过滤相关设置
   enable_date_filter: boolean
   default_date_range: string
@@ -16,6 +17,7 @@ export interface AppSettings {
 export const useSettingsStore = defineStore('settings', () => {
   const settings = ref<AppSettings>({
     fetch_interval_minutes: 15,
+    items_per_page: 50,
     enable_date_filter: true,
     default_date_range: '30d',
     time_field: 'inserted_at',
