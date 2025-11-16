@@ -72,8 +72,25 @@ async def generate_summary(
     if not content:
         raise HTTPException(status_code=400, detail="Entry has no content to summarize")
 
+    # 安全地组合元信息（标题 / 作者 / 时间），字段缺失时自动跳过
+    meta_lines: list[str] = []
+    if entry.title:
+        meta_lines.append(f"标题：{entry.title}")
+    if entry.author:
+        meta_lines.append(f"作者：{entry.author}")
+    if entry.published_at:
+        # 统一格式化为可读字符串；缺失时不输出
+        meta_lines.append(f"时间：{entry.published_at.strftime('%Y-%m-%d %H:%M')}")
+
+    if meta_lines:
+        meta_block = "文章元信息：\n" + "\n".join(meta_lines) + "\n\n正文内容：\n"
+    else:
+        meta_block = ""
+
+    combined_content = f"{meta_block}{content}"
+
     client = ai_client_manager.get_client("summary")
-    summary_text = await client.summarize(content, language=payload.language)
+    summary_text = await client.summarize(combined_content, language=payload.language)
 
     summary = Summary(entry_id=entry.id, language=payload.language, summary=summary_text)
     session.add(summary)
