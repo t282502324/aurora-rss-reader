@@ -77,7 +77,9 @@ class RSSHubManager:
             # 创建新镜像
             if priority is None:
                 # 自动分配最低优先级
-                max_priority = session.exec(select(RSSHubConfig)).order_by(RSSHubConfig.priority.desc()).first()
+                max_priority = session.exec(
+                    select(RSSHubConfig).order_by(RSSHubConfig.priority.desc())
+                ).first()
                 priority = (max_priority.priority + 1) if max_priority else 1
 
             mirror = RSSHubConfig(
