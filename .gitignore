@@ -147,3 +147,5 @@ backend/data/development.*
 # Archived documentation
 archive/
 docs_archive/
+
+CLAUDE.md
